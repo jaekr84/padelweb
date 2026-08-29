@@ -8,30 +8,47 @@ import { useRouter } from "next/navigation";
 
 export type TournamentStep = "attendance" | "format" | "structure" | "draw" | "groups" | "bracket";
 
+export type TournamentFormatKind = "round_robin" | "americano";
+
 interface TournamentTimelineProps {
     tournamentId: string;
     currentStep: TournamentStep;
     status: string; // 'draft' | 'published' | 'en_curso' | 'en_eliminatorias' | 'finalizado'
+    /** Americano has no draw step and keeps its bracket on a dedicated route. */
+    format?: TournamentFormatKind;
     readOnly?: boolean;
+    /**
+     * Steps the caller already renders in-page: clicking them calls
+     * `onStepChange` instead of navigating away.
+     */
+    localSteps?: TournamentStep[];
     onStepChange?: (step: TournamentStep) => void;
+    /** Americano: sin cuadro generado, el paso "Llaves" no se puede abrir. */
+    hasBracket?: boolean;
 }
 
 export function TournamentTimeline({
     tournamentId,
     currentStep,
     status,
+    format = "round_robin",
     readOnly = false,
-    onStepChange
+    localSteps = [],
+    onStepChange,
+    hasBracket
 }: TournamentTimelineProps) {
     const router = useRouter();
 
+    const isAmericano = format === "americano";
+    const started = ["en_curso", "en_eliminatorias", "finalizado"].includes(status);
+
     const steps = [
-        { 
-            id: "attendance" as TournamentStep, 
-            label: "Asistencia", 
+        {
+            id: "attendance" as TournamentStep,
+            label: "Asistencia",
             icon: Users2,
             path: `/tournaments/${tournamentId}/fixture?step=checkin`,
-            isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) || currentStep !== "attendance",
+            isCompleted: started || currentStep !== "attendance",
             isAccessible: true
         },
         {
@@ -39,7 +56,7 @@ export function TournamentTimeline({
             label: "Formato",
             icon: Layers,
             path: `/tournaments/${tournamentId}/fixture?step=format`,
-            isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) || !["attendance", "format"].includes(currentStep),
+            isCompleted: started || !["attendance", "format"].includes(currentStep),
             isAccessible: !readOnly
         },
         {
@@ -47,56 +64,70 @@ export function TournamentTimeline({
             label: "Estructura",
             icon: LayoutGrid,
             path: `/tournaments/${tournamentId}/fixture?step=config`,
-            isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) && currentStep !== "structure",
+            isCompleted: started && currentStep !== "structure",
             isAccessible: !readOnly
         },
-        { 
-            id: "draw" as TournamentStep, 
-            label: "Sorteo", 
+        // Americano genera los partidos sobre la marcha: no hay sorteo de grupos.
+        ...(isAmericano ? [] : [{
+            id: "draw" as TournamentStep,
+            label: "Sorteo",
             icon: Shuffle,
             path: `/tournaments/${tournamentId}/fixture?step=assign`,
-            isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) && currentStep !== "draw",
+            isCompleted: started && currentStep !== "draw",
             isAccessible: !readOnly
-        },
-        { 
-            id: "groups" as TournamentStep, 
-            label: "Grupos", 
+        }]),
+        {
+            id: "groups" as TournamentStep,
+            label: isAmericano ? "Partidos" : "Grupos",
             icon: Swords,
-            path: `/tournaments/${tournamentId}/manage?step=done`,
+            path: isAmericano
+                ? `/tournaments/${tournamentId}/manage`
+                : `/tournaments/${tournamentId}/manage?step=done`,
             isCompleted: ["en_eliminatorias", "finalizado"].includes(status),
-            isAccessible: readOnly || ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
+            isAccessible: readOnly || started
         },
-        { 
-            id: "bracket" as TournamentStep, 
-            label: "Llaves", 
+        {
+            id: "bracket" as TournamentStep,
+            label: "Llaves",
             icon: Trophy,
-            path: `/tournaments/${tournamentId}/manage?step=elim`,
+            path: isAmericano
+                ? (readOnly
+                    ? `/tournaments/${tournamentId}/playoffs`
+                    : `/tournaments/${tournamentId}/manage/playoffs`)
+                : `/tournaments/${tournamentId}/manage?step=elim`,
             isCompleted: status === "finalizado",
-            isAccessible: readOnly || ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
+            // En Americano el cuadro vive en su propia ruta: sin cuadro generado
+            // el paso no lleva a ningún lado, así que queda deshabilitado.
+            isAccessible: isAmericano
+                ? (hasBracket ?? ["en_eliminatorias", "finalizado"].includes(status))
+                : (readOnly || started)
         }
     ];
 
     const handleNavigate = (s: typeof steps[0]) => {
         if (!s.isAccessible) return;
-        if (readOnly && onStepChange) {
+        // In-page steps never leave the current route.
+        if (onStepChange && localSteps.includes(s.id)) {
             onStepChange(s.id);
             return;
         }
         router.push(s.path);
     };
 
-    const filteredSteps = readOnly 
+    const filteredSteps = readOnly
         ? steps.filter(s => ["groups", "bracket"].includes(s.id))
         : steps;
 
+    // `w-max`: dentro de un contenedor con overflow-x-auto los pasos conservan su
+    // ancho y scrollean, en vez de comprimirse unos sobre otros.
     return (
-        <div className="flex items-center gap-1 bg-surface p-1 rounded-2xl border border-hairline backdrop-blur-md">
+        <div className="flex w-max items-center gap-1 bg-surface p-1 rounded-2xl border border-hairline backdrop-blur-md">
             {filteredSteps.map((s, idx) => {
                 const Icon = s.icon;
                 const isActive = s.id === currentStep;
-                
+
                 return (
-                    <div key={s.id} className="flex items-center">
+                    <div key={s.id} className="flex items-center shrink-0">
                         <button
                             onClick={() => handleNavigate(s)}
                             disabled={!s.isAccessible}
@@ -119,7 +150,7 @@ export function TournamentTimeline({
                                     </div>
                                 )}
                             </div>
-                            
+
                             <span className={`
                                 text-[9px] font-black uppercase tracking-wider hidden lg:block
                                 ${isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"}
@@ -132,8 +163,8 @@ export function TournamentTimeline({
                             )}
                         </button>
 
-                        {idx < steps.length - 1 && (
-                            <ChevronRight className={`w-3 h-3 mx-0.5 ${steps[idx+1].isAccessible ? "text-subtle" : "text-muted-foreground"}`} />
+                        {idx < filteredSteps.length - 1 && (
+                            <ChevronRight className={`w-3 h-3 mx-0.5 ${filteredSteps[idx + 1].isAccessible ? "text-subtle" : "text-muted-foreground"}`} />
                         )}
                     </div>
                 );

@@ -1,8 +1,9 @@
 "use client";
 
 import { Trophy, Swords, Plus, Minus, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { TournamentHeader } from "./components/tournament/TournamentHeader";
+import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
 import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
 import { TournamentDashboard } from "./components/tournament/TournamentDashboard";
 import { TournamentGroupsView } from "./components/tournament/TournamentGroupsView";
@@ -30,6 +31,7 @@ export interface TournamentManagerProps {
 }
 
 export default function TournamentManager(props: TournamentManagerProps) {
+    const router = useRouter();
     const {
         tournamentId,
         tournamentName,
@@ -110,16 +112,34 @@ export default function TournamentManager(props: TournamentManagerProps) {
             </div>
 
             <div className="max-w-[1800px] mx-auto space-y-6 relative z-10 pb-10">
-                <TournamentHeader
+                <TournamentNavBar
                     tournamentId={tournamentId}
                     tournamentName={tournamentName}
-                    step={step}
-                    setStep={setStep}
-                    initialStatus={initialStatus}
+                    status={initialStatus}
+                    format="round_robin"
+                    currentStep={step === "setup" ? "attendance" : step === "elim" ? "bracket" : "groups"}
                     readOnly={readOnly}
+                    localSteps={["groups", "bracket"]}
+                    onStepChange={(newStep) => {
+                        setStep(
+                            newStep === "attendance" ? "setup" :
+                                newStep === "bracket" ? "elim" : "done"
+                        );
+                    }}
+                    onBack={() => {
+                        if (readOnly) {
+                            router.push(`/tournaments/${tournamentId}`);
+                        } else if (step === "elim") {
+                            setStep("done");
+                        } else if (step === "done" || step === "qual") {
+                            setStep("setup");
+                        } else {
+                            router.push(`/tournaments/${tournamentId}/fixture?step=assign`);
+                        }
+                    }}
+                    onOpenPlayers={() => setIsPlayersModalOpen(true)}
+                    onRefresh={handleRefresh}
                     isRefreshing={isRefreshing}
-                    handleRefresh={handleRefresh}
-                    setIsPlayersModalOpen={setIsPlayersModalOpen}
                 />
 
                 <div className="w-full px-3 md:px-6 lg:px-10 py-3 pb-16">

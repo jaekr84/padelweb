@@ -14,9 +14,8 @@ import { AmericanoPlayoffQueue } from "./components/americano/AmericanoPlayoffQu
 import { AmericanoBracketMirror } from "./components/americano/AmericanoBracketMirror";
 import { AmericanoModals } from "./components/americano/AmericanoModals";
 import { getAllPlayers } from "@/app/actions/players";
-import { saveTournamentFixture, updateTournamentMetadata, finalizeTournament } from "./actions";
-import TournamentPublishButton from "@/components/TournamentPublishButton";
-import FinalizeTournamentModal from "./components/tournament/FinalizeTournamentModal";
+import { saveTournamentFixture, updateTournamentMetadata } from "./actions";
+import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
 
 export interface AmericanoPlayoffsProps {
     tournamentId: string;
@@ -71,7 +70,6 @@ export default function AmericanoPlayoffs({
     );
     const [saving, setSaving] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 
     // Present & Paid players
     const [present, setPresent] = useState<Set<string>>(new Set(initialPresent));
@@ -434,74 +432,24 @@ export default function AmericanoPlayoffs({
         setTimeout(() => setIsRefreshing(false), 1000);
     };
 
-    const handleFinalizeConfirm = async (): Promise<boolean> => {
-        const res = await finalizeTournament(tournamentId);
-        return res.ok;
-    };
-
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-hairline">
-                <div className="w-full px-2 md:px-3 h-10 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => router.push(readOnly ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/manage`)}
-                            className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
-                        >
-                            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                            <span className="text-[8px] font-black uppercase tracking-[0.15em] italic">Volver a Grupos</span>
-                        </button>
-
-                        <div className="h-5 w-px bg-border/20 hidden md:block" />
-
-                        <div className="hidden md:flex flex-col min-w-0">
-                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
-                            <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground leading-none truncate max-w-[120px] lg:max-w-[200px]">
-                                {tournamentName}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-celeste/5 border border-celeste/20 text-celeste text-[8px] font-black uppercase tracking-widest">
-                            <div className="w-1 h-1 rounded-full bg-celeste animate-pulse" />
-                            {initialStatus === "finalizado" ? "Finalizado" : "Eliminatorias"}
-                        </div>
-
-                        {initialStatus === "finalizado" && (
-                            <TournamentPublishButton
-                                tournamentId={tournamentId}
-                                tournamentName={tournamentName}
-                                variant="management"
-                            />
-                        )}
-
-                        {!readOnly && initialStatus !== "finalizado" && (
-                            <button
-                                onClick={() => setIsFinalizeModalOpen(true)}
-                                disabled={!isBracketFinished}
-                                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest ${
-                                    isBracketFinished
-                                        ? "bg-rojo/10 border-rojo/20 text-rojo hover:bg-rojo hover:text-white"
-                                        : "bg-surface border-hairline text-subtle cursor-not-allowed"
-                                }`}
-                                title={isBracketFinished ? "Finalizar Torneo" : "Se debe definir la Final para finalizar el torneo"}
-                            >
-                                <Check className="w-3 h-3" />
-                                <span>Finalizar</span>
-                            </button>
-                        )}
-
-                        <button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            className="p-1.5 rounded-lg bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
-                        >
-                            <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
-                        </button>
-                    </div>
-                </div>
-            </header>
+            {/* Barra unificada de gestión (misma en setup, gestión y llaves) */}
+            <TournamentNavBar
+                tournamentId={tournamentId}
+                tournamentName={tournamentName}
+                status={initialStatus}
+                format="americano"
+                currentStep="bracket"
+                readOnly={readOnly}
+                hasBracket={bracket.length > 0}
+                onBack={() => router.push(readOnly ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/manage`)}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
+                finalizeDisabled={!isBracketFinished}
+                finalizeHint={isBracketFinished ? "Finalizar Torneo" : "Se debe definir la Final para finalizar el torneo"}
+                onFinalizeRedirect={() => router.push(readOnly ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/manage`)}
+            />
 
             <div className="w-full px-3 md:px-4 py-6 pb-24">
                 <div className="max-w-7xl mx-auto space-y-8">
@@ -597,13 +545,6 @@ export default function AmericanoPlayoffs({
                 handleUpdateMatchPlayer={() => Promise.resolve({ ok: true })}
             />
 
-            <FinalizeTournamentModal
-                isOpen={isFinalizeModalOpen}
-                onClose={() => setIsFinalizeModalOpen(false)}
-                onConfirm={handleFinalizeConfirm}
-                tournamentName={tournamentName}
-                onRedirect={() => router.push(readOnly ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/manage`)}
-            />
         </div>
     );
 }

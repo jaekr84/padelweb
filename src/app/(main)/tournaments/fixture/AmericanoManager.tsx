@@ -16,7 +16,7 @@ import { getAllPlayers } from "@/app/actions/players";
 import { 
     Player, Group, Match, BracketSlot, BracketMatch, Standing 
 } from "./components/americano/types";
-import { AmericanoHeader } from "./components/americano/AmericanoHeader";
+import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
 import { isTeamChecked, toggleCheckKey, remapCheckKeys, removeCheckKeys } from "./components/americano/attendance-utils";
 import { AmericanoAttendance } from "./components/americano/AmericanoAttendance";
 import { AmericanoCourtGrid } from "./components/americano/AmericanoCourtGrid";
@@ -1201,17 +1201,26 @@ export default function AmericanoManager({
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <AmericanoHeader
+            {/* Barra unificada de gestión (misma en setup, gestión y llaves) */}
+            <TournamentNavBar
                 tournamentId={tournamentId}
                 tournamentName={tournamentName}
-                step={step}
-                setStep={setStep}
-                initialStatus={initialStatus}
-                isGroupStageFinished={isGroupStageFinished}
+                status={initialStatus}
+                format="americano"
+                currentStep={step === "setup" ? "attendance" : "groups"}
                 readOnly={readOnly}
-                handleRefresh={handleRefresh}
-                isRefreshing={isRefreshing}
+                localSteps={["attendance", "groups"]}
                 hasBracket={bracket.length > 0}
+                onStepChange={(s) => {
+                    if (s === "attendance") setStep("setup");
+                    else if (s === "groups") setStep("active");
+                }}
+                onBack={() => {
+                    if (step === "active") setStep("setup");
+                    else router.push("/admin/tournaments");
+                }}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
             />
 
             <div className="w-full px-3 md:px-4 py-2 pb-24">

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
-import Link from "next/link";
 import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
-    Dice5, Check, Trash2, Settings, Plus, Minus,
+    Dice5, Check, Trash2, Plus, Minus,
     AlertCircle, ChevronRight,
     Users2, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
     LayoutDashboard, Swords, BarChart3, Clock
 } from "lucide-react";
-import { TournamentTimeline, TournamentStep } from "./components/tournament/TournamentTimeline";
+import { TournamentStep } from "./components/tournament/TournamentTimeline";
+import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
 import { getAllPlayers } from "@/app/actions/players";
 import {
     Dialog,
@@ -662,48 +662,21 @@ export default function FixtureSetup({
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            {/* Sticky Header */}
-            <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-3xl border-b border-hairline px-4 py-4">
-                <div className="max-w-6xl mx-auto space-y-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={() => {
-                                    if (step === "assign") setStep("config");
-                                    else if (step === "config") setStep("format");
-                                    else if (step === "format") setStep("checkin");
-                                    else router.push(`/tournaments/${tournamentId}/manage`);
-                                }}
-                                className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                Volver
-                            </button>
-
-
-                            <TournamentTimeline
-                                tournamentId={tournamentId}
-                                currentStep={timelineStep}
-                                status={initialStatus}
-                            />
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href={`/tournaments/${tournamentId}/edit`}
-                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
-                            >
-                                <Settings className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Info</span>
-                            </Link>
-
-                            <div className="px-4 py-2 bg-celeste/10 border border-celeste/30 text-celeste rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
-                                Gestión de Fixture
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </header>
+            {/* Barra unificada de gestión (misma en setup, gestión y llaves) */}
+            <TournamentNavBar
+                tournamentId={tournamentId}
+                tournamentName={tournamentName}
+                status={initialStatus}
+                format="round_robin"
+                currentStep={timelineStep}
+                onBack={() => {
+                    if (step === "assign") setStep("config");
+                    else if (step === "config") setStep("format");
+                    else if (step === "format") setStep("checkin");
+                    else router.push(`/tournaments/${tournamentId}/manage`);
+                }}
+                onOpenPlayers={() => setIsPlayerModalOpen(true)}
+            />
 
             <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
 

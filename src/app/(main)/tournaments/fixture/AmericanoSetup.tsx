@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
-import Link from "next/link";
 import {
-    ArrowRight, ArrowLeft, Settings, Plus, Minus, Users2
+    ArrowRight, ArrowLeft, Settings, Plus, Minus
 } from "lucide-react";
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer, updateTournamentMetadata } from "./actions";
 import { generateAmericanoMatches as generateAmericanoMatchesCore } from "@/lib/matchmaking";
@@ -13,7 +12,8 @@ import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
 import { SplitAttendanceList } from "./components/SplitAttendanceList";
 import { FormatSelector } from "./components/FormatSelector";
-import { TournamentTimeline, TournamentStep } from "./components/tournament/TournamentTimeline";
+import { TournamentStep } from "./components/tournament/TournamentTimeline";
+import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
 
 export interface AmericanoSetupProps {
     tournamentId: string;
@@ -248,54 +248,20 @@ export default function AmericanoSetup({
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-hairline px-4 py-2">
-                <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => {
-                                if (step === "config") setStep("format");
-                                else if (step === "format") setStep("checkin");
-                                else router.push(`/tournaments/${tournamentId}/manage`);
-                            }}
-                            className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-surface px-2.5 py-1.5 rounded-lg border border-hairline"
-                        >
-                            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
-                            Volver
-                        </button>
-
-                        <div className="h-5 w-px bg-border/40 hidden md:block" />
-
-                        <div className="hidden md:flex flex-col">
-                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste/60 leading-none mb-0.5">Torneo</span>
-                            <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground leading-none truncate max-w-[150px]">
-                                {tournamentName}
-                            </span>
-                        </div>
-
-                        <div className="h-5 w-[1px] bg-border/40 hidden md:block" />
-
-                        {/* Shared stepper so Americano and Robin show the same phases. */}
-                        <div className="hidden md:block">
-                            <TournamentTimeline
-                                tournamentId={tournamentId}
-                                currentStep={timelineStep}
-                                status={initialStatus}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="px-3 py-1.5 bg-celeste/5 border border-celeste/10 text-celeste rounded-lg text-[7px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
-                            Método Americano
-                        </div>
-                        {!isIndividual && (
-                            <div className="p-1.5 rounded-lg bg-celeste/5 border border-celeste/10 text-celeste">
-                                <Users2 className="w-3.5 h-3.5" />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
+            {/* Barra unificada de gestión (misma en setup, gestión y llaves) */}
+            <TournamentNavBar
+                tournamentId={tournamentId}
+                tournamentName={tournamentName}
+                status={initialStatus}
+                format="americano"
+                currentStep={timelineStep}
+                onBack={() => {
+                    if (step === "config") setStep("format");
+                    else if (step === "format") setStep("checkin");
+                    else router.push(`/tournaments/${tournamentId}/manage`);
+                }}
+                onOpenPlayers={() => setIsPlayerModalOpen(true)}
+            />
 
             <main className="max-w-4xl mx-auto px-4 py-6 pb-32">
                 <AnimatePresence mode="wait">
