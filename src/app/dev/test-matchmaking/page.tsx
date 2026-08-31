@@ -619,10 +619,31 @@ function runRobin(): Suite {
         const borde = generateGroupMatches([mkGroup("A", 1), { id: "B", players: [] }]);
         checks.push(ok("Grupos de 1 pareja o vacíos no generan partidos", borde.length === 0));
 
-        // A propósito no hay rondas ni canchas: el orden lo decide el admin.
-        const conRonda = generateGroupMatches([mkGroup("A", 4)]) as { roundIndex?: number }[];
-        checks.push(ok("No asigna rondas ni canchas (el orden de juego es manual)",
-            conRonda.every(m => m.roundIndex === undefined)));
+        // El orden del fixture importa: el grupo juega en una cancha, uno atrás de
+        // otro, y roundIndex es lo que lo hace sobrevivir al guardado.
+        const conRonda = generateGroupMatches([mkGroup("A", 4)]);
+        checks.push(ok("Cada partido lleva su posición en el fixture (roundIndex 0..n-1)",
+            conRonda.every((m, i) => m.roundIndex === i)));
+
+        // Nadie juega dos veces seguidas. Con 4 parejas hay sólo tres cruces
+        // disjuntos, así que el mínimo alcanzable es 2 repeticiones sobre 5
+        // adyacencias; de 5 parejas para arriba tiene que dar 0.
+        const seguidos = (n: number) => {
+            const ms = generateGroupMatches([mkGroup("A", n)]);
+            let repes = 0;
+            for (let i = 1; i < ms.length; i++) {
+                const prev = [ms[i - 1].team1.id, ms[i - 1].team2.id];
+                if (prev.includes(ms[i].team1.id) || prev.includes(ms[i].team2.id)) repes++;
+            }
+            return repes;
+        };
+        // Grupo de 4: mínimo inevitable de 2 sobre 5 adyacencias (sólo hay tres
+        // cruces disjuntos). Grupos pares grandes llegan a 0; los impares dejan
+        // una sola repetición al final, porque en cada vuelta una pareja descansa.
+        checks.push(ok("Grupo de 4: llega al mínimo inevitable de partidos seguidos (2 de 5)", seguidos(4) === 2));
+        checks.push(ok("Grupos de 6 y 8: nadie juega dos veces seguidas", seguidos(6) === 0 && seguidos(8) === 0));
+        checks.push(ok("Grupos de 5 y 7: a lo sumo una repetición en todo el fixture",
+            seguidos(5) <= 1 && seguidos(7) <= 1));
 
         fixtureSample = generateGroupMatches([mkGroup("A", 4)]);
     }

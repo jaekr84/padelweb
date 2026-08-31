@@ -3,6 +3,7 @@ import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrati
 import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
+import { sortGroupsByName } from "@/lib/group-order";
 import TournamentManager from "../fixture/TournamentManager";
 import AmericanoManager from "../fixture/AmericanoManager";
 import { Trophy, CheckCircle, ArrowLeft } from "lucide-react";
@@ -227,7 +228,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
     const dbMatches = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id));
     const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id));
 
-    const initialGroups = dbGroups.map(g => {
+    const initialGroups = sortGroupsByName(dbGroups.map(g => {
         let players = [];
         if (typeof g.players === 'string') {
             try {
@@ -242,8 +243,9 @@ export default async function TournamentDisplayPage({ params }: Props) {
             id: g.id,
             name: g.name,
             players: (players as { id: string, name: string }[]) || [],
+            courtNumber: g.courtNumber ?? null,
         };
-    });
+    }));
 
     // Mapping for match teams
     const allPlayers = initialGroups.flatMap(g => g.players);

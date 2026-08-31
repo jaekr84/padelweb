@@ -20,6 +20,7 @@ export type SaveFixtureInput = {
         id: string;
         name: string;
         players: PlayerLike[];
+        courtNumber?: string | number | null;
     }[];
     matches: {
         id: string;
@@ -50,6 +51,12 @@ export type SaveFixtureInput = {
     presentPlayerIds?: string[];
     paidPlayerIds?: string[];
     skipRevalidation?: boolean;
+    /**
+     * Rearma la fase de grupos desde el armado ("Iniciar Torneo"): fuerza el
+     * estado a "en_curso" aunque el torneo ya hubiera pasado a eliminatorias.
+     * No lo usa el guardado de fondo de la vista de grupos.
+     */
+    restartGroups?: boolean;
 };
 function slotName(t: BracketSlot): string | null {
     if (!t) return null;
@@ -138,6 +145,9 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                         tournamentId: input.tournamentId,
                         name: g.name,
                         players: ensureParsed(g.players),
+                        courtNumber: g.courtNumber != null && String(g.courtNumber).trim() !== ""
+                            ? String(g.courtNumber).trim().slice(0, 50)
+                            : null,
                     });
                 groupIdMap.set(g.id, idToUse);
             }
@@ -243,9 +253,13 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 finalizado: "finalizado",
             };
             
-            // Protect status: don't go back from eliminatorias to en_curso unless explicitly forced
+            // Protect status: don't go back from eliminatorias to en_curso unless explicitly forced.
+            // El guardado de fondo de la vista de grupos usa phase "grupos" aunque el
+            // torneo ya esté en llaves, y sin esto lo tiraría para atrás.
+            // `restartGroups` es el "explícitamente forzado": lo manda solo el botón
+            // "Iniciar Torneo" del armado, que rehace el fixture desde cero.
             let newStatus = statusMap[input.phase];
-            if (prevT.status === "en_eliminatorias" && input.phase === "grupos") {
+            if (prevT.status === "en_eliminatorias" && input.phase === "grupos" && !input.restartGroups) {
                 newStatus = "en_eliminatorias";
             }
 
@@ -276,6 +290,61 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         });
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+/**
+ * Guarda solo la cancha de un grupo. Va aparte de saveTournamentFixture a
+ * propósito: es un UPDATE puntual, no toca partidos ni `tournaments.updatedAt`,
+ * así que no dispara el bloqueo optimista de los otros admins conectados.
+ */
+export async function updateGroupCourt(input: {
+    tournamentId: string;
+    groupId: string;
+    courtNumber: string | null;
+}): Promise<{ ok: boolean; courtNumber?: string | null; error?: string }> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) return { ok: false, error: "No autorizado" };
+
+        const [tournament] = await db
+            .select({ createdByUserId: tournaments.createdByUserId })
+            .from(tournaments)
+            .where(eq(tournaments.id, input.tournamentId))
+            .limit(1);
+
+        if (!tournament) return { ok: false, error: "Torneo no encontrado" };
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = tournament.createdByUserId === session.userId;
+        if (!isAdmin && !isOwner) return { ok: false, error: "No tenés permiso para gestionar este torneo" };
+
+        const raw = (input.courtNumber ?? "").trim().slice(0, 50);
+        const value = raw === "" ? null : raw;
+
+        // El tournamentId acota el grupo al torneo: un groupId de otro torneo no entra.
+        const groupFilter = and(
+            eq(tournamentGroups.id, input.groupId),
+            eq(tournamentGroups.tournamentId, input.tournamentId),
+        );
+
+        const [group] = await db
+            .select({ id: tournamentGroups.id })
+            .from(tournamentGroups)
+            .where(groupFilter)
+            .limit(1);
+
+        if (!group) return { ok: false, error: "Grupo no encontrado" };
+
+        await db.update(tournamentGroups).set({ courtNumber: value }).where(groupFilter);
+
+        revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+        revalidatePath(`/tournaments/${input.tournamentId}/resultados`);
+
+        return { ok: true, courtNumber: value };
+    } catch (err) {
+        console.error("[updateGroupCourt]", err);
         return { ok: false, error: String(err) };
     }
 }

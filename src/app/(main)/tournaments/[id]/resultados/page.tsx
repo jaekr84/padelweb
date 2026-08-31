@@ -4,6 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { sortGroupsByName } from "@/lib/group-order";
 import ResultadosPublicClient from "./ResultadosPublicClient";
 
 interface Props {
@@ -46,12 +47,12 @@ export default async function ResultadosPublicPage({ params }: Props) {
         return Array.isArray(data) ? data : [];
     };
 
-    const rawGroups = dbGroups.map(g => ({
+    const rawGroups = sortGroupsByName(dbGroups.map(g => ({
         id: g.id,
         name: g.name,
-        courtNumber: (g as any).courtNumber ?? null,
+        courtNumber: g.courtNumber ?? null,
         players: parsePlayers(g.players) as any[],
-    }));
+    })));
 
     const allPlayerIds = [...new Set(rawGroups.flatMap(g =>
         g.players.flatMap((p: any) => [p.userId, p.partnerUserId, p.id].filter(Boolean))

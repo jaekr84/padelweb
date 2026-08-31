@@ -118,6 +118,8 @@ export const tournamentGroups = mysqlTable("tournament_groups", {
     tournamentId: varchar("tournament_id", { length: 36 }).notNull(),
     name: varchar("name", { length: 50 }).notNull(),
     players: json("players").notNull(),
+    // Etiqueta libre de cancha que el admin le pone al grupo ("3", "Central").
+    courtNumber: varchar("court_number", { length: 50 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     tournamentIdIdx: index("groups_tournament_id_idx").on(table.tournamentId),

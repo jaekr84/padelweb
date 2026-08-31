@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
-import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "../../actions";
+import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata, updateGroupCourt } from "../../actions";
 import {
     Player, Group, Match, BracketSlot, BracketMatch, Standing
 } from "./types";
@@ -63,10 +63,14 @@ export function useTournamentLogic({
         const s = searchParams.get("step");
         if (s === "done" || s === "elim" || s === "setup" || s === "qual") return s as any;
         
+        // El cuadro tiene que existir para abrir en llaves: si el estado quedó en
+        // eliminatorias pero no hay bracket (fixture rearmado desde el armado),
+        // abrir ahí mostraría una pantalla vacía y saltearía la fase de grupos.
+        const hasBracket = initialBracket.length > 0;
         return (initialStatus === "setup" || (initialGroups.length === 0 && !readOnly))
             ? "setup" :
-            (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done";
-    }, [searchParams, initialStatus, initialGroups.length, readOnly]);
+            ((initialStatus === "en_eliminatorias" || initialStatus === "finalizado") && hasBracket) ? "elim" : "done";
+    }, [searchParams, initialStatus, initialGroups.length, initialBracket.length, readOnly]);
 
     const setStep = useCallback((newStep: "setup" | "done" | "qual" | "elim") => {
         const current = new URLSearchParams(Array.from(searchParams.entries()));
@@ -142,6 +146,27 @@ export function useTournamentLogic({
         saveChainRef.current = run.catch(() => { });
         return run;
     }, []);
+
+    /**
+     * Guarda la cancha de un grupo con su propio botón (no pasa por el autosave).
+     * Devuelve si pudo guardar para que el botón muestre el estado de carga.
+     */
+    const saveGroupCourt = useCallback(async (groupId: string, courtNumber: string): Promise<boolean> => {
+        try {
+            const res = await updateGroupCourt({ tournamentId, groupId, courtNumber });
+            if (!res.ok) {
+                toast.error(res.error || "No se pudo guardar la cancha");
+                return false;
+            }
+            setGroups(prev => prev.map(g => g.id === groupId ? { ...g, courtNumber: res.courtNumber ?? null } : g));
+            toast.success("Cancha guardada");
+            return true;
+        } catch (err) {
+            console.error("[saveGroupCourt]", err);
+            toast.error("No se pudo guardar la cancha");
+            return false;
+        }
+    }, [tournamentId]);
 
     const [confirmModal, setConfirmModal] = useState<{
         open: boolean;
@@ -271,18 +296,103 @@ export function useTournamentLogic({
     const toggleMemberPaid = (pairId: string, slot: 0 | 1) =>
         toggleMemberChecked(paid, setPaid, 'paid', pairId, slot);
 
+    // Todas las marcas de un grupo (los dos integrantes de cada pareja).
+    const groupCheckKeys = useCallback((groupId: string): string[] => {
+        const g = groups.find(x => x.id === groupId);
+        if (!g) return [];
+        return g.players.flatMap(p =>
+            isIndividual ? [p.id] : [memberCheckKey(p.id, 0), memberCheckKey(p.id, 1)]
+        );
+    }, [groups, isIndividual]);
+
+    const isGroupChecked = useCallback((kind: 'present' | 'paid', groupId: string) => {
+        const keys = groupCheckKeys(groupId);
+        if (keys.length === 0) return false;
+        const set = kind === 'present' ? present : paid;
+        // Un id de pareja "pelado" (legacy) vale por sus dos integrantes.
+        return keys.every(k => set.has(k) || set.has(k.replace(/_[01]$/, "")));
+    }, [groupCheckKeys, present, paid]);
+
+    // Marca/desmarca la columna entera (OK o $$) de un grupo: cuando llega la tanda
+    // completa, hacerlo fila por fila es incómodo.
+    const toggleGroupChecked = (kind: 'present' | 'paid', groupId: string) => {
+        if (readOnly) return;
+        const g = groups.find(x => x.id === groupId);
+        if (!g || g.players.length === 0) return;
+
+        const keys = groupCheckKeys(groupId);
+        const current = kind === 'present' ? present : paid;
+        const next = new Set(current);
+
+        // Expandimos los ids "pelados" a sus dos integrantes antes de togglear.
+        if (!isIndividual) {
+            g.players.forEach(p => {
+                if (next.has(p.id)) {
+                    next.delete(p.id);
+                    next.add(memberCheckKey(p.id, 0));
+                    next.add(memberCheckKey(p.id, 1));
+                }
+            });
+        }
+
+        const allChecked = keys.every(k => next.has(k));
+        keys.forEach(k => { if (allChecked) next.delete(k); else next.add(k); });
+
+        if (kind === 'present') {
+            setPresent(next);
+            lastSavedState.current.present = next;
+        } else {
+            setPaid(next);
+            lastSavedState.current.paid = next;
+        }
+
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(kind === 'present' ? next : present),
+            paidPlayerIds: Array.from(kind === 'paid' ? next : paid),
+        }).catch(e => console.error("Failed to save attendance", e));
+    };
+
     const isMatchDone = (m: Match) => m.confirmed || m.status === 'finished' || m.status === 'completed';
 
+    // Una pareja no puede estar en dos canchas a la vez. En el Robin todas las
+    // parejas del grupo se cruzan entre sí, así que varios partidos del mismo
+    // grupo pueden convivir, pero no si comparten una pareja.
+    const busyEntryIds = useMemo(() => new Set(
+        matches
+            .filter(m => m.status === 'in_progress' && !m.confirmed)
+            .flatMap(m => [m.team1.id, m.team2.id])
+    ), [matches]);
+
+    const isEntryBusy = useCallback((id: string) => busyEntryIds.has(id), [busyEntryIds]);
+
+    /**
+     * Partidos del grupo que se pueden mandar a cancha ahora: pendientes, con las
+     * dos parejas presentes y sin ninguna pareja ya jugando. Va reservando las
+     * parejas para que la propia tanda tampoco se pise a sí misma.
+     */
+    const startableGroupMatches = useCallback((groupId: string) => {
+        const pending = matches
+            .filter(m => m.groupId === groupId && !isMatchDone(m) && m.status !== 'in_progress')
+            .filter(m => isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id))
+            .sort((a, b) => (a.roundIndex ?? Number.MAX_SAFE_INTEGER) - (b.roundIndex ?? Number.MAX_SAFE_INTEGER));
+
+        const reserved = new Set(busyEntryIds);
+        const startable: Match[] = [];
+        for (const m of pending) {
+            if (reserved.has(m.team1.id) || reserved.has(m.team2.id)) continue;
+            startable.push(m);
+            reserved.add(m.team1.id);
+            reserved.add(m.team2.id);
+        }
+        return startable;
+    }, [matches, isEntryPresent, busyEntryIds]);
+
     // How many matches a group can still start now, and how many remain pending.
-    // A match is startable when both pairs are present. We do NOT block on a pair
-    // already playing: in round-robin every pair meets every other, so requiring
-    // "no repeated pair" would allow only one live match per group. The admin can
-    // send several matches of the same group.
     const groupNextInfo = useCallback((groupId: string) => {
         const pending = matches.filter(m => m.groupId === groupId && !isMatchDone(m) && m.status !== 'in_progress');
-        const available = pending.filter(m => isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id));
-        return { pendingCount: pending.length, availableCount: available.length };
-    }, [matches, isEntryPresent]);
+        return { pendingCount: pending.length, availableCount: startableGroupMatches(groupId).length };
+    }, [matches, startableGroupMatches]);
 
     // Start one specific match, chosen by the admin from the full fixture. No
     // presence check: the order on court rarely matches the listed order, so the
@@ -292,6 +402,13 @@ export function useTournamentLogic({
         const chosen = matches.find(m => m.id === matchId);
         if (!chosen || isMatchDone(chosen) || chosen.status === 'in_progress') return;
 
+        // Una pareja jugando dos partidos a la vez rompe el resultado de los dos.
+        const ocupada = [chosen.team1, chosen.team2].find(t => isEntryBusy(t.id));
+        if (ocupada) {
+            toast.error(`${ocupada.name.split(/[\/\+]/)[0].trim()} ya está jugando otro partido`);
+            return;
+        }
+
         const newMatches = matches.map(m => m.id === matchId ? { ...m, status: 'in_progress' } : m);
         setMatches(newMatches);
 
@@ -299,7 +416,7 @@ export function useTournamentLogic({
             const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
-                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                 matches: newMatches,
                 bracket,
                 presentPlayerIds: Array.from(present),
@@ -319,6 +436,160 @@ export function useTournamentLogic({
         }
     };
 
+    /** Parejas del grupo, para los selectores de cada lado del partido. */
+    const groupEntries = useCallback((groupId: string) =>
+        groups.find(g => g.id === groupId)?.players ?? [], [groups]);
+
+    /**
+     * Guarda una nueva lista de partidos con rollback si el guardado falla.
+     * Lo usan la edición de parejas y el reordenamiento del fixture.
+     */
+    const persistMatches = async (newMatches: Match[], errorMsg: string) => {
+        const prev = matches;
+        setMatches(newMatches);
+        try {
+            const res = await saveFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
+                matches: newMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true,
+            });
+            if (!res.ok) {
+                setMatches(prev);
+                toast.error(`${errorMsg}: ${res.error}`);
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error(e);
+            setMatches(prev);
+            toast.error(errorMsg);
+            return false;
+        }
+    };
+
+    /**
+     * Cambia una de las parejas de un partido pendiente. Se permite elegir
+     * cualquier pareja del grupo: puede romper el todos-contra-todos (cruces
+     * repetidos o sin jugar), y de eso avisa `groupFixtureIssues`.
+     */
+    const updateMatchTeam = async (matchId: string, slot: 1 | 2, newTeamId: string) => {
+        if (readOnly) return;
+        const target = matches.find(x => x.id === matchId);
+        if (!target) return;
+        if (isMatchDone(target) || target.status === 'in_progress') {
+            toast.error("No se pueden cambiar las parejas de un partido en juego o terminado");
+            return;
+        }
+        const entry = groupEntries(target.groupId).find(p => p.id === newTeamId);
+        if (!entry) return;
+
+        const rival = slot === 1 ? target.team2 : target.team1;
+        if (rival.id === entry.id) {
+            toast.error("Una pareja no puede jugar contra sí misma");
+            return;
+        }
+
+        const newMatches = matches.map(x => x.id === matchId
+            ? { ...x, ...(slot === 1 ? { team1: entry } : { team2: entry }) }
+            : x);
+        await persistMatches(newMatches, "No se pudo cambiar la pareja");
+    };
+
+    /** Sube o baja un partido en el orden del fixture de su grupo. */
+    const moveMatchOrder = async (matchId: string, dir: -1 | 1) => {
+        if (readOnly) return;
+        const target = matches.find(x => x.id === matchId);
+        if (!target) return;
+
+        const ordered = matches
+            .filter(x => x.groupId === target.groupId)
+            .sort((a, b) => (a.roundIndex ?? Number.MAX_SAFE_INTEGER) - (b.roundIndex ?? Number.MAX_SAFE_INTEGER)
+                || a.id.localeCompare(b.id));
+
+        // Se normaliza todo el grupo: los fixtures viejos tienen roundIndex en null
+        // y sin eso no habría con qué ordenar.
+        const posById = new Map(ordered.map((x, idx) => [x.id, idx]));
+
+        // Sólo se reordena entre pendientes: los jugados ya pasaron y los que
+        // están en cancha no se mueven de lugar.
+        const pending = ordered.filter(x => !isMatchDone(x) && x.status !== 'in_progress');
+        const i = pending.findIndex(x => x.id === matchId);
+        const j = i + dir;
+        if (i < 0 || j < 0 || j >= pending.length) return;
+
+        const a = pending[i];
+        const b = pending[j];
+        const posA = posById.get(a.id)!;
+        posById.set(a.id, posById.get(b.id)!);
+        posById.set(b.id, posA);
+
+        const newMatches = matches.map(x => posById.has(x.id)
+            ? { ...x, roundIndex: posById.get(x.id)! }
+            : x);
+        await persistMatches(newMatches, "No se pudo reordenar el fixture");
+    };
+
+    /**
+     * Manda un partido pendiente al frente de la cola del grupo ("jugar primero").
+     * Los pendientes conservan las posiciones que ya ocupaban en el fixture: sólo
+     * se reparte quién va en cada una, así los jugados y los que están en cancha
+     * no se mueven de lugar.
+     */
+    const moveMatchFirst = async (matchId: string) => {
+        if (readOnly) return;
+        const target = matches.find(x => x.id === matchId);
+        if (!target) return;
+
+        const ordered = matches
+            .filter(x => x.groupId === target.groupId)
+            .sort((a, b) => (a.roundIndex ?? Number.MAX_SAFE_INTEGER) - (b.roundIndex ?? Number.MAX_SAFE_INTEGER)
+                || a.id.localeCompare(b.id));
+
+        const posById = new Map(ordered.map((x, idx) => [x.id, idx]));
+        const pending = ordered.filter(x => !isMatchDone(x) && x.status !== 'in_progress');
+        if (pending.findIndex(x => x.id === matchId) <= 0) return;
+
+        const slots = pending.map(x => posById.get(x.id)!);
+        const reordenados = [target, ...pending.filter(x => x.id !== matchId)];
+        reordenados.forEach((x, k) => posById.set(x.id, slots[k]));
+
+        const newMatches = matches.map(x => posById.has(x.id)
+            ? { ...x, roundIndex: posById.get(x.id)! }
+            : x);
+        await persistMatches(newMatches, "No se pudo reordenar el fixture");
+    };
+
+    /**
+     * Cruces repetidos o sin jugar de un grupo. El fixture nace como un
+     * todos-contra-todos perfecto; editar parejas a mano puede romperlo, así que
+     * la vista muestra el aviso en vez de impedirlo.
+     */
+    const groupFixtureIssues = useCallback((groupId: string) => {
+        const key = (a: string, b: string) => [a, b].sort().join("|");
+        const gm = matches.filter(m => m.groupId === groupId);
+
+        const count = new Map<string, number>();
+        gm.forEach(m => {
+            const k = key(m.team1.id, m.team2.id);
+            count.set(k, (count.get(k) ?? 0) + 1);
+        });
+
+        const repeated = [...count.values()].filter(n => n > 1).length;
+        const players = groupEntries(groupId);
+        let missing = 0;
+        for (let i = 0; i < players.length; i++) {
+            for (let j = i + 1; j < players.length; j++) {
+                if (!count.has(key(players[i].id, players[j].id))) missing++;
+            }
+        }
+        return { repeated, missing };
+    }, [matches, groupEntries]);
+
     // Start every pending match of a group whose pairs are present, in one save.
     // Asks first: starting a whole group at once is the opposite of the on-demand
     // flow, and an accidental click used to leave every match live.
@@ -326,7 +597,7 @@ export function useTournamentLogic({
         if (readOnly) return;
         const { availableCount } = groupNextInfo(groupId);
         if (availableCount === 0) {
-            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
+            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes y que no estén jugando.");
             return;
         }
         const groupName = groups.find(g => g.id === groupId)?.name || "el grupo";
@@ -344,14 +615,9 @@ export function useTournamentLogic({
 
     const runStartAllGroupMatches = async (groupId: string) => {
         if (readOnly) return;
-        const toStart = matches.filter(m =>
-            m.groupId === groupId &&
-            !isMatchDone(m) &&
-            m.status !== 'in_progress' &&
-            isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id)
-        );
+        const toStart = startableGroupMatches(groupId);
         if (toStart.length === 0) {
-            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
+            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes y que no estén jugando.");
             return;
         }
         const ids = new Set(toStart.map(m => m.id));
@@ -361,7 +627,7 @@ export function useTournamentLogic({
             const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
-                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                 matches: newMatches,
                 bracket,
                 presentPlayerIds: Array.from(present),
@@ -401,7 +667,7 @@ export function useTournamentLogic({
             const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
-                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                 matches: newMatches,
                 bracket,
                 presentPlayerIds: Array.from(present),
@@ -493,7 +759,7 @@ export function useTournamentLogic({
                 const res = await saveFixture({
                     tournamentId,
                     phase: step === "elim" ? "eliminatorias" : "grupos",
-                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                     matches: updatedMatches,
                     bracket: updatedBracket,
                     presentPlayerIds: Array.from(updatedPresent),
@@ -590,7 +856,7 @@ export function useTournamentLogic({
                 const res = await saveFixture({
                     tournamentId,
                     phase: step === "elim" ? "eliminatorias" : "grupos",
-                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                     matches: updatedMatches,
                     bracket,
                     presentPlayerIds: Array.from(updatedPresent),
@@ -667,7 +933,7 @@ export function useTournamentLogic({
             const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
-                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                 matches: updatedMatches,
                 bracket: bracket,
                 presentPlayerIds: Array.from(present),
@@ -717,7 +983,7 @@ export function useTournamentLogic({
                     const res = await saveFixture({
                         tournamentId,
                         phase: step === "elim" ? "eliminatorias" : "grupos",
-                        groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                        groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                         matches: newMatches,
                         bracket: newBracket,
                         presentPlayerIds: Array.from(present),
@@ -751,7 +1017,7 @@ export function useTournamentLogic({
             const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
-                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
                 matches: newMatches,
                 bracket,
                 presentPlayerIds: Array.from(present),
@@ -1211,7 +1477,8 @@ export function useTournamentLogic({
         const currentHash = JSON.stringify({
             m: matches.map(m=>[m.id, m.score1, m.score2, m.status, m.confirmed]),
             b: bracket.map(b=>[b.id, b.score1, b.score2, b.status, b.confirmed]),
-            g: groups.map(g => (g as any).courtNumber || null)
+            // La cancha del grupo ya no entra acá: se guarda con su propio botón
+            // (saveGroupCourt) y no tiene sentido disparar un guardado completo.
         });
         if (lastAutoSaveHash.current === currentHash) return;
         
@@ -1329,7 +1596,7 @@ export function useTournamentLogic({
     return {
         // State
         step, setStep,
-        groups, setGroups,
+        groups, setGroups, saveGroupCourt,
         matches, setMatches,
         bracket, setBracket,
         resolvedBracket,
@@ -1382,11 +1649,19 @@ export function useTournamentLogic({
         isIndividual,
         bulkUpdateStatus,
         isEntryPresent,
+        isEntryBusy,
+        groupEntries,
+        updateMatchTeam,
+        moveMatchOrder,
+        moveMatchFirst,
+        groupFixtureIssues,
         isEntryPaid,
         isMemberPresent,
         isMemberPaid,
         toggleMemberPresent,
         toggleMemberPaid,
+        isGroupChecked,
+        toggleGroupChecked,
         groupNextInfo,
         startGroupMatch,
         startAllGroupMatches,

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
-    Dice5, Check, Trash2, Plus, Minus,
+    Dice5, Check, Trash2, Plus, Minus, Eraser,
     AlertCircle, ChevronRight,
     Users2, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
     LayoutDashboard, Swords, BarChart3, Clock
@@ -131,7 +131,7 @@ export default function FixtureSetup({
             presentPlayerIds: type === 'present' ? ids : Array.from(present),
             paidPlayerIds: type === 'paid' ? ids : Array.from(paid),
         });
-        toast.success(`Estado de ${type === 'present' ? 'asistencia' : 'pago'} actualizado`);
+        toast.success(type === 'present' ? "Jugadores habilitados" : "Estado de pago actualizado");
     };
 
     // New: Track if randomized at least once
@@ -140,8 +140,6 @@ export default function FixtureSetup({
     const [numGroups, setNumGroups] = useState(initialGroups.length || 4);
     const [playersPerGroup, setPlayersPerGroup] = useState(initialGroups[0]?.players.length || 3);
     const [groups, setGroups] = useState<Group[]>(initialGroups);
-    const [randomizing, setRandomizing] = useState(false);
-    const [drawingPlayer, setDrawingPlayer] = useState<Player | null>(null);
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
@@ -151,6 +149,7 @@ export default function FixtureSetup({
     // Replacement/Deletion state
     const [replacingParticipant, setReplacingParticipant] = useState<{ checkinId: string, displayName: string, pairId: string } | null>(null);
     const [participantToDelete, setParticipantToDelete] = useState<{ id: string, name: string } | null>(null);
+    const [confirmClearGroups, setConfirmClearGroups] = useState(false);
     const [allPotentialPlayers, setAllPotentialPlayers] = useState<any[]>([]);
 
     const [isFetchLoading, setIsFetchLoading] = useState(false);
@@ -158,20 +157,46 @@ export default function FixtureSetup({
     const [playerSearchQuery, setPlayerSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
 
-    // Toggle all check-in entries (per-member for pairs) on/off, mirroring Americano.
-    const handleCheckAll = (type: 'paid' | 'present') => {
-        const allCheckinIds: string[] = [];
+    // Un id por integrante para las parejas ("pairId_0" / "pairId_1"), el id pelado
+    // en individuales. Es la lista completa de "todos habilitados".
+    const allCheckinIds = useMemo(() => {
+        const ids: string[] = [];
         players.forEach(p => {
             if (isIndividual) {
-                allCheckinIds.push(p.id);
+                ids.push(p.id);
             } else {
-                allCheckinIds.push(`${p.id}_0`);
-                if (p.player2 || p.name.includes(" / ")) allCheckinIds.push(`${p.id}_1`);
+                ids.push(`${p.id}_0`);
+                if (p.player2 || p.name.includes(" / ")) ids.push(`${p.id}_1`);
             }
         });
-        const currentSet = type === 'paid' ? paid : present;
-        const areAll = allCheckinIds.length > 0 && allCheckinIds.every(id => currentSet.has(id));
-        bulkUpdateStatus(type, areAll ? [] : allCheckinIds);
+        return ids;
+    }, [players, isIndividual]);
+
+    // Los jugadores arrancan habilitados: el admin deshabilita al que no juega.
+    // Solo se siembra en un torneo sin fixture y sin ninguna marca previa, así no
+    // pisa la selección de un torneo que ya venía armado.
+    const seededRef = useRef(false);
+    useEffect(() => {
+        if (seededRef.current) return;
+        if (initialPresent.length > 0 || initialGroups.length > 0) return;
+        if (allCheckinIds.length === 0) return;
+        seededRef.current = true;
+        setPresent(new Set(allCheckinIds));
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: allCheckinIds,
+        });
+    }, [allCheckinIds, initialPresent.length, initialGroups.length, tournamentId]);
+
+    // "Habilitar todos" solo suma: dejar el set vacío haría que el sembrado de
+    // arriba vuelva a habilitar a todos en la próxima carga.
+    const handleCheckAll = (type: 'paid' | 'present') => {
+        if (type === 'present') {
+            bulkUpdateStatus('present', allCheckinIds);
+            return;
+        }
+        const areAll = allCheckinIds.length > 0 && allCheckinIds.every(id => paid.has(id));
+        bulkUpdateStatus('paid', areAll ? [] : allCheckinIds);
     };
 
     const fetchPotentialPlayers = useCallback(async () => {
@@ -221,14 +246,9 @@ export default function FixtureSetup({
 
         setPlayers(updatedPlayers);
 
-        // SYNC ATTENDANCE
+        // El reemplazo ocupa el mismo lugar en la lista: hereda el estado de
+        // habilitación del que salió, no vuelve a arrancar deshabilitado.
         const nextPresent = new Set(present);
-        if (nextPresent.has(pairId)) {
-            // Note: If it's a pair, removing the whole pair's presence is safer 
-            // but usually checkinId == pairId for singles, or we just want to reset presence for the new pair.
-            nextPresent.delete(pairId);
-            // We don't automatically add the new one as present, they should check in again.
-        }
         setPresent(nextPresent);
 
         const nextPaid = new Set(paid);
@@ -308,6 +328,41 @@ export default function FixtureSetup({
         }),
         [players, present, isIndividual]);
 
+    // Si deshabilitás a alguien después del sorteo, hay que sacarlo del grupo donde
+    // había caído. Se compara contra la pasada anterior en vez de filtrar el grupo
+    // entero por PRESENT_PLAYERS: así no se tocan los invitados cargados a mano en
+    // un grupo (no están en `players`) ni los torneos viejos que quedaron con los
+    // grupos armados y el check-in vacío.
+    const prevEnabledIdsRef = useRef<Set<string> | null>(null);
+    useEffect(() => {
+        const enabled = new Set(PRESENT_PLAYERS.map(p => p.id));
+        const prev = prevEnabledIdsRef.current;
+        prevEnabledIdsRef.current = enabled;
+        if (!prev) return; // primera pasada: no tocamos lo que ya estaba sorteado
+
+        const justDisabled = new Set([...prev].filter(id => !enabled.has(id)));
+        if (justDisabled.size === 0) return;
+
+        setGroups(prevGroups => {
+            let changed = false;
+            const next = prevGroups.map(g => {
+                const kept = g.players.filter(p => !justDisabled.has(p.id));
+                if (kept.length === g.players.length) return g;
+                changed = true;
+                return { ...g, players: kept };
+            });
+            return changed ? next : prevGroups;
+        });
+    }, [PRESENT_PLAYERS]);
+
+    // Próximo grupo que recibiría un doble click, sólo para el tooltip.
+    const nextAutoGroupName = useMemo(() => {
+        const conCupo = groups.filter(g => g.players.length < playersPerGroup);
+        if (conCupo.length === 0) return null;
+        const minimo = Math.min(...conCupo.map(g => g.players.length));
+        return conCupo.find(g => g.players.length === minimo)!.name;
+    }, [groups, playersPerGroup]);
+
     const totalSlots = numGroups * playersPerGroup;
     const assignedIds = new Set(groups.flatMap(g => g.players.map(p => p.id)));
     const unassigned = PRESENT_PLAYERS.filter(p => !assignedIds.has(p.id));
@@ -333,15 +388,18 @@ export default function FixtureSetup({
             tournamentId,
             phase: "grupos",
             youtubeUrl: ytUrl || undefined,
-            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players, courtNumber: g.courtNumber ?? null })),
             matches: currentMatches,
             bracket: [],
             presentPlayerIds: Array.from(present),
             paidPlayerIds: Array.from(paid),
+            restartGroups: true,
         });
 
         if (res.ok) {
-            router.push(`/tournaments/${tournamentId}/manage`);
+            // step=done explícito: arrancar el torneo siempre abre la fase de grupos,
+            // no las llaves, aunque el torneo hubiera llegado a eliminatorias antes.
+            router.push(`/tournaments/${tournamentId}/manage?step=done`);
         } else {
             alert("Error al iniciar el torneo: " + res.error);
         }
@@ -369,6 +427,23 @@ export default function FixtureSetup({
         );
     }, []);
 
+    // Los invitados se cargan directo adentro de un grupo: no están en `players`,
+    // así que vaciar los grupos los pierde (no vuelven al pool). Se avisa antes.
+    const guestsInGroups = useMemo(() => {
+        const registeredIds = new Set(players.map(p => p.id));
+        return groups.flatMap(g => g.players).filter(p => !registeredIds.has(p.id));
+    }, [groups, players]);
+
+    // Vaciar todos los grupos de una para rearmarlos a mano: sacarlos de a uno
+    // con la papelera es inviable con 30 jugadores.
+    const handleClearGroups = useCallback(() => {
+        setGroups(prev => prev.map(g => ({ ...g, players: [] })));
+        setFirstSelectedPlayerId(null);
+        setSwappedIds(new Set());
+        setConfirmClearGroups(false);
+        toast.success("Grupos vaciados: asignalos a mano o volvé a sortear");
+    }, []);
+
     const handleAddGuest = useCallback((name: string, groupId: string) => {
         const guestId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
         setGroups((prev) =>
@@ -382,44 +457,26 @@ export default function FixtureSetup({
         );
     }, [playersPerGroup]);
 
-    const handleRandomize = useCallback(async () => {
+    // Sorteo instantáneo: antes revelaba jugador por jugador con ~1.2s de animación.
+    const handleRandomize = useCallback(() => {
         if (PRESENT_PLAYERS.length === 0) return;
-        setRandomizing(true);
-
-        // Start with empty groups
-        let currentGroups = buildGroups(numGroups);
-        setGroups(currentGroups);
-
-        // Very brief pause to see the clear
-        await new Promise(r => setTimeout(r, 200));
 
         const shuffled = shuffleCore(PRESENT_PLAYERS);
 
         // Placement decided by the shared, tested core (club-balanced distribution).
-        // We pass the already-shuffled order and only animate the reveal.
         const target = distributeIntoGroups(shuffled, numGroups, playersPerGroup, { preshuffled: true });
         const groupIndexByPlayer = new Map<string, number>();
         target.forEach((g, gi) => g.players.forEach(p => groupIndexByPlayer.set(p.id, gi)));
 
-        // Target sequence total duration: ~1.2 seconds
-        const delay = Math.max(50, Math.min(150, 1200 / shuffled.length));
-
-        for (let i = 0; i < shuffled.length; i++) {
-            const player = shuffled[i];
+        const nextGroups = buildGroups(numGroups);
+        for (const player of shuffled) {
             const gi = groupIndexByPlayer.get(player.id);
             if (gi === undefined) continue; // overflow (more players than slots)
-
-            currentGroups[gi].players.push(player);
-            setDrawingPlayer(player);
-            setGroups([...currentGroups]);
-
-            // Fast rhythmic delay based on count
-            await new Promise(r => setTimeout(r, delay));
+            nextGroups[gi].players.push(player);
         }
 
-        setDrawingPlayer(null);
+        setGroups(nextGroups);
         setHasRandomized(true);
-        setRandomizing(false);
     }, [numGroups, playersPerGroup, PRESENT_PLAYERS]);
 
     const handleAddGroup = useCallback(() => {
@@ -460,6 +517,59 @@ export default function FixtureSetup({
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
     };
+
+    /**
+     * Manda un jugador del pool al próximo lugar libre siguiendo el orden de
+     * llenado: primero el slot 1 de todos los grupos, después el 2, y así. Se
+     * elige el grupo con menos jugadores; a igualdad, el primero (A, B, C...).
+     */
+    const handlePlayerAutoAssign = useCallback((playerId: string) => {
+        const player = PRESENT_PLAYERS.find(p => p.id === playerId);
+        if (!player) return;
+        // Sólo asigna desde el pool: a los que ya están en un grupo no los mueve.
+        if (groups.some(g => g.players.some(p => p.id === playerId))) return;
+
+        const conCupo = groups.filter(g => g.players.length < playersPerGroup);
+        if (conCupo.length === 0) {
+            toast.error("No hay cupo libre en ningún grupo");
+            return;
+        }
+
+        const minimo = Math.min(...conCupo.map(g => g.players.length));
+        const destino = conCupo.find(g => g.players.length === minimo)!;
+
+        setGroups(prev => prev.map(g =>
+            g.id === destino.id ? { ...g, players: [...g.players, player] } : g
+        ));
+        // El doble click cancela cualquier selección de intercambio a medias.
+        setFirstSelectedPlayerId(null);
+        setSwappedIds(new Set());
+    }, [groups, PRESENT_PLAYERS, playersPerGroup]);
+
+    // El click simple (modo intercambio) se retrasa un toque: sin esto, los dos
+    // clicks del doble también lo dispararían. El usuario pidió doble click
+    // justamente para no asignar por un click en falso.
+    const poolClickTimer = useRef<NodeJS.Timeout | null>(null);
+    // handlePlayerClick se define más abajo (depende del estado de intercambio);
+    // el ref evita tener que reordenar todo el bloque.
+    const handlePlayerClickRef = useRef<(playerId: string) => void>(() => { });
+    useEffect(() => () => { if (poolClickTimer.current) clearTimeout(poolClickTimer.current); }, []);
+
+    const handlePoolClick = useCallback((playerId: string) => {
+        if (poolClickTimer.current) clearTimeout(poolClickTimer.current);
+        poolClickTimer.current = setTimeout(() => {
+            poolClickTimer.current = null;
+            handlePlayerClickRef.current(playerId);
+        }, 220);
+    }, []);
+
+    const handlePoolDoubleClick = useCallback((playerId: string) => {
+        if (poolClickTimer.current) {
+            clearTimeout(poolClickTimer.current);
+            poolClickTimer.current = null;
+        }
+        handlePlayerAutoAssign(playerId);
+    }, [handlePlayerAutoAssign]);
 
     const handlePlayerClick = useCallback((playerId: string) => {
         if (!firstSelectedPlayerId) {
@@ -551,6 +661,8 @@ export default function FixtureSetup({
             return prev;
         });
     }, [firstSelectedPlayerId, PRESENT_PLAYERS]);
+
+    handlePlayerClickRef.current = handlePlayerClick;
 
     const handleEmptySpotClick = useCallback((targetGroupId: string) => {
         if (!firstSelectedPlayerId) return;
@@ -703,6 +815,7 @@ export default function FixtureSetup({
                                 togglePresent={togglePresent}
                                 onCheckAll={handleCheckAll}
                                 onInscribir={() => setIsPlayerModalOpen(true)}
+                                variant="habilitacion"
                             />
 
                             <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
@@ -815,7 +928,7 @@ export default function FixtureSetup({
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 {[
-                                    { label: "Check-in", value: isIndividual ? present.size : `${Math.floor(present.size / 2)} eq.`, detail: `${present.size} jug.`, color: "text-azul-primary" },
+                                    { label: "Habilitados", value: isIndividual ? present.size : `${Math.floor(present.size / 2)} eq.`, detail: `${present.size} jug.`, color: "text-azul-primary" },
                                     { label: "Cupos", value: numGroups * playersPerGroup, detail: "Disponibilidad", color: "text-foreground/80" },
                                     {
                                         label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Excedente" : "Pendientes",
@@ -902,14 +1015,20 @@ export default function FixtureSetup({
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleRandomize}
-                                        disabled={randomizing || unassigned.length === 0}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all ${randomizing
-                                            ? "bg-celeste text-carbon-950 animate-pulse"
-                                            : "bg-azul-primary/10 text-azul-primary border border-azul-primary/20 hover:bg-azul-primary hover:text-white"
-                                            }`}
+                                        disabled={unassigned.length === 0}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all bg-azul-primary/10 text-azul-primary border border-azul-primary/20 hover:bg-azul-primary hover:text-white disabled:opacity-40 disabled:pointer-events-none"
                                     >
-                                        <Dice5 className={`w-4 h-4 ${randomizing ? 'animate-spin' : ''}`} />
-                                        {randomizing ? "Shuffling..." : "Sorteo"}
+                                        <Dice5 className="w-4 h-4" />
+                                        Sorteo
+                                    </button>
+                                    <button
+                                        onClick={() => setConfirmClearGroups(true)}
+                                        disabled={totalAssigned === 0}
+                                        title="Sacar a todos de los grupos para asignarlos a mano"
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest bg-rojo/10 text-rojo border border-rojo/20 hover:bg-rojo hover:text-white transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        <Eraser className="w-4 h-4" />
+                                        Vaciar Grupos
                                     </button>
                                     <button
                                         onClick={handleAddGroup}
@@ -929,17 +1048,19 @@ export default function FixtureSetup({
                             >
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Sin Asignar ({unassigned.length})</span>
+                                    {unassigned.length > 0 && (
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40">
+                                            Doble click → próximo lugar libre
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    <AnimatePresence>
-                                        {unassigned.map(p => (
-                                            <motion.button
+                                    {unassigned.map(p => (
+                                            <button
                                                 key={p.id}
-                                                layoutId={p.id}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                onClick={() => handlePlayerClick(p.id)}
+                                                onClick={() => handlePoolClick(p.id)}
+                                                onDoubleClick={() => handlePoolDoubleClick(p.id)}
+                                                title={`Doble click: mandar a ${nextAutoGroupName ?? "el próximo lugar libre"}`}
                                                 className={`px-3 py-1.5 border rounded-xl text-[10px] font-black uppercase italic tracking-wider transition-all flex items-center gap-2 ${swappedIds.has(p.id)
                                                     ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
                                                     : "bg-muted hover:bg-azul-primary/10 border-border text-foreground/80"
@@ -947,9 +1068,8 @@ export default function FixtureSetup({
                                             >
                                                 <ArrowRightLeft className={`w-3 h-3 ${swappedIds.has(p.id) ? "animate-pulse" : ""}`} />
                                                 {p.name}
-                                            </motion.button>
-                                        ))}
-                                    </AnimatePresence>
+                                            </button>
+                                    ))}
                                     {unassigned.length === 0 && (
                                         <div className="w-full py-4 text-center border border-dashed border-border rounded-2xl">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60 italic">Todo listo</span>
@@ -971,11 +1091,9 @@ export default function FixtureSetup({
                                             <span className="text-[9px] font-black text-foreground/40">{g.players.length} / {playersPerGroup}</span>
                                         </div>
                                         <div className="p-1.5 space-y-1 flex-1 min-h-[120px]">
-                                            <AnimatePresence mode="popLayout">
-                                                {g.players.map(p => (
-                                                    <motion.div
+                                            {g.players.map(p => (
+                                                    <div
                                                         key={p.id}
-                                                        layoutId={p.id}
                                                         draggable
                                                         onDragStart={(e) => onDragStart(e as any, p.id)}
                                                         onDragEnd={onDragEnd as any}
@@ -1006,15 +1124,14 @@ export default function FixtureSetup({
                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                             </button>
                                                         </div>
-                                                    </motion.div>
-                                                ))}
-                                            </AnimatePresence>
+                                                    </div>
+                                            ))}
                                             {/* Espacios faltantes */}
                                             {Array.from({ length: Math.max(0, playersPerGroup - g.players.length) }).map((_, i) => (
                                                 <div
                                                     key={`empty-${g.id}-${i}`}
                                                     onClick={() => handleEmptySpotClick(g.id)}
-                                                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 border border-dashed animate-pulse mt-1 first:mt-0 cursor-pointer transition-all ${firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
+                                                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 border border-dashed mt-1 first:mt-0 cursor-pointer transition-all ${firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
                                                         }`}
                                                 >
                                                     <span className={`text-[9px] font-black uppercase tracking-widest ${firstSelectedPlayerId ? "text-celeste" : "text-rojo/50"
@@ -1069,76 +1186,6 @@ export default function FixtureSetup({
                 </AnimatePresence>
 
                 {/* Drawing Overlay */}
-                {/* Drawing Overlay (Modern Strip Version) */}
-                <AnimatePresence>
-                    {randomizing && drawingPlayer && (
-                        <motion.div
-                            initial={{ opacity: 0, scaleY: 0 }}
-                            animate={{ opacity: 1, scaleY: 1 }}
-                            exit={{ opacity: 0, scaleY: 0 }}
-                            className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-[110] h-48 flex items-center justify-center bg-background/95 backdrop-blur-xl border-y border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)]"
-                        >
-                            {/* Decorative internal lights for the strip */}
-                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                                <div className="absolute top-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
-                                <div className="absolute bottom-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
-                            </div>
-
-                            <div className="relative flex flex-col items-center">
-                                {/* Label above the strip */}
-                                <motion.span
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="absolute -top-12 text-azul-primary text-[10px] font-black uppercase tracking-[0.5em] italic"
-                                >
-                                    Asignando Posición
-                                </motion.span>
-
-                                <div className="relative h-20 md:h-24 overflow-hidden flex items-center justify-center px-12">
-                                    {/* Minimalist selection arrows */}
-                                    <motion.div
-                                        animate={{ x: [-5, 0, -5] }}
-                                        transition={{ repeat: Infinity, duration: 1 }}
-                                        className="absolute left-0 text-azul-primary"
-                                    >
-                                        <ChevronRight className="w-8 h-8 stroke-[3]" />
-                                    </motion.div>
-                                    <motion.div
-                                        animate={{ x: [5, 0, 5] }}
-                                        transition={{ repeat: Infinity, duration: 1 }}
-                                        className="absolute right-0 text-azul-primary rotate-180"
-                                    >
-                                        <ChevronRight className="w-8 h-8 stroke-[3]" />
-                                    </motion.div>
-
-                                    {/* Slot Machine Text Animation */}
-                                    <AnimatePresence mode="popLayout">
-                                        <motion.div
-                                            key={drawingPlayer.id}
-                                            initial={{ y: 40, opacity: 0, filter: "blur(10px)" }}
-                                            animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                                            exit={{ y: -40, opacity: 0, filter: "blur(10px)" }}
-                                            transition={{ duration: 0.1, ease: "easeOut" }}
-                                            className="text-4xl md:text-7xl font-black text-foreground italic uppercase tracking-tighter"
-                                        >
-                                            {drawingPlayer.name}
-                                        </motion.div>
-                                    </AnimatePresence>
-                                </div>
-
-                                {/* Subtle Loading Line */}
-                                <div className="absolute -bottom-8 w-48 h-0.5 bg-surface rounded-full overflow-hidden">
-                                    <motion.div
-                                        initial={{ x: "-100%" }}
-                                        animate={{ x: "100%" }}
-                                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                                        className="h-full w-1/2 bg-azul-primary blur-[1px]"
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 {/* Player Selection Modal */}
                 <ManualRegistrationModal
@@ -1252,6 +1299,38 @@ export default function FixtureSetup({
                                 className="flex-1 px-4 py-3 bg-rojo hover:bg-rojo/90 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rojo/20"
                             >
                                 Sí, Eliminar
+                            </button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* MODAL CONFIRMACION VACIAR GRUPOS */}
+                <Dialog open={confirmClearGroups} onOpenChange={setConfirmClearGroups}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-rojo">¿Vaciar los grupos?</DialogTitle>
+                            <DialogDescription>
+                                Vas a sacar {totalAssigned} {totalAssigned === 1 ? "participante" : "participantes"} de los grupos para asignarlos a mano. Los grupos quedan vacíos y podés volver a sortear cuando quieras.
+                                {guestsInGroups.length > 0 && (
+                                    <span className="block mt-2 text-rojo font-black">
+                                        Ojo: {guestsInGroups.length} {guestsInGroups.length === 1 ? "invitado cargado a mano se pierde" : "invitados cargados a mano se pierden"} y hay que volver a agregarlos.
+                                    </span>
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="flex gap-4 mt-4">
+                            <button
+                                onClick={() => setConfirmClearGroups(false)}
+                                className="flex-1 px-4 py-3 bg-muted hover:bg-muted/80 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleClearGroups}
+                                className="flex-1 px-4 py-3 bg-rojo hover:bg-rojo/90 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rojo/20"
+                            >
+                                Sí, Vaciar
                             </button>
                         </div>
                     </DialogContent>

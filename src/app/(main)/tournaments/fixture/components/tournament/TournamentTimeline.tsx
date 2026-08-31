@@ -45,7 +45,8 @@ export function TournamentTimeline({
     const steps = [
         {
             id: "attendance" as TournamentStep,
-            label: "Asistencia",
+            // Robin habilita/deshabilita jugadores; Americano sigue con check-in de asistencia.
+            label: isAmericano ? "Asistencia" : "Jugadores",
             icon: Users2,
             path: `/tournaments/${tournamentId}/fixture?step=checkin`,
             isCompleted: started || currentStep !== "attendance",

@@ -41,7 +41,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
 
     const {
         step, setStep,
-        groups, setGroups,
+        groups, saveGroupCourt,
         matches,
         bracket,
         resolvedBracket,
@@ -84,10 +84,18 @@ export default function TournamentManager(props: TournamentManagerProps) {
         isIndividual,
         bulkUpdateStatus,
         isEntryPresent,
+        isEntryBusy,
+        groupEntries,
+        updateMatchTeam,
+        moveMatchOrder,
+        moveMatchFirst,
+        groupFixtureIssues,
         isMemberPresent,
         isMemberPaid,
         toggleMemberPresent,
         toggleMemberPaid,
+        isGroupChecked,
+        toggleGroupChecked,
         groupNextInfo,
         startGroupMatch,
         startAllGroupMatches,
@@ -191,6 +199,12 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             matches={matches}
                                             readOnly={readOnly}
                                             isEntryPresent={isEntryPresent}
+                                            isEntryBusy={isEntryBusy}
+                                            groupEntries={groupEntries}
+                                            updateMatchTeam={updateMatchTeam}
+                                            moveMatchOrder={moveMatchOrder}
+                                            moveMatchFirst={moveMatchFirst}
+                                            groupFixtureIssues={groupFixtureIssues}
                                             isMemberPresent={isMemberPresent}
                                             isMemberPaid={isMemberPaid}
                                             toggleMemberPresent={toggleMemberPresent}
@@ -204,7 +218,9 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             handleScoreChange={handleScoreChange}
                                             handleConfirmScore={handleConfirmScore}
                                             handleReopenMatch={handleReopenMatch}
-                                            setGroups={setGroups}
+                                            isGroupChecked={isGroupChecked}
+                                            toggleGroupChecked={toggleGroupChecked}
+                                            saveGroupCourt={saveGroupCourt}
                                             computeStandings={computeStandings}
                                         />
 

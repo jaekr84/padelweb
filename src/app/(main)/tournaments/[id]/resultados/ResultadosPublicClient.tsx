@@ -152,7 +152,7 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
             {groupMatches.length > 0 && (
                 <div className="p-3 space-y-1.5 border-t border-hairline">
                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground px-0.5 mb-2">Resultados</p>
-                    {groupMatches.sort((a, b) => a.id.localeCompare(b.id)).map(m => {
+                    {groupMatches.slice().sort((a, b) => ((a as any).roundIndex ?? Number.MAX_SAFE_INTEGER) - ((b as any).roundIndex ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id)).map(m => {
                         const isDone = m.confirmed || m.status === "finished" || m.status === "completed";
                         const isLive = m.status === "in_progress";
                         const w1 = isDone && Number(m.score1 ?? 0) > Number(m.score2 ?? 0);

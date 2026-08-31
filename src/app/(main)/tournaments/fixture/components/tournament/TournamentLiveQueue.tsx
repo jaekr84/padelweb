@@ -1,6 +1,7 @@
 "use client";
 
 import { Radio, Minus, Plus, Flag, Undo2, MapPin } from "lucide-react";
+import { sortGroupsByName } from "@/lib/group-order";
 import { Group, Match } from "./types";
 
 // Cola de los partidos que están en cancha, juntando todos los grupos. Es la
@@ -65,14 +66,16 @@ export function TournamentLiveQueue({
     cancelGroupMatch,
 }: TournamentLiveQueueProps) {
     const groupById = new Map(groups.map(g => [g.id, g]));
-    const groupOrder = new Map(groups.map((g, i) => [g.id, i]));
+    const groupOrder = new Map(sortGroupsByName(groups).map((g, i) => [g.id, i]));
 
     const liveMatches = matches
         .filter(m => m.status === 'in_progress' && !m.confirmed)
         .sort((a, b) => {
             const ga = groupOrder.get(a.groupId) ?? 99;
             const gb = groupOrder.get(b.groupId) ?? 99;
-            return ga !== gb ? ga - gb : a.id.localeCompare(b.id);
+            if (ga !== gb) return ga - gb;
+            return ((a.roundIndex ?? Number.MAX_SAFE_INTEGER) - (b.roundIndex ?? Number.MAX_SAFE_INTEGER))
+                || a.id.localeCompare(b.id);
         });
 
     const withScore = liveMatches.filter(m => (m.score1 ?? 0) !== (m.score2 ?? 0));

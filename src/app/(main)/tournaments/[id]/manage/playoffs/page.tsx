@@ -3,6 +3,7 @@ import { users, tournaments, tournamentGroups, groupMatches, bracketMatches } fr
 import { eq, inArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
+import { sortGroupsByName } from "@/lib/group-order";
 import AmericanoPlayoffs from "@/app/(main)/tournaments/fixture/AmericanoPlayoffs";
 
 interface Props {
@@ -72,11 +73,12 @@ export default async function AmericanoManagePlayoffsPage({ params }: Props) {
         return Array.isArray(data) ? data : [];
     };
 
-    const rawGroups = dbGroups.map(g => ({
+    const rawGroups = sortGroupsByName(dbGroups.map(g => ({
         id: g.id,
         name: g.name,
         players: parsePlayers(g.players) as any[],
-    }));
+        courtNumber: g.courtNumber ?? null,
+    })));
 
     // Enrich players with images from DB
     const allPlayerIds = [...new Set(rawGroups.flatMap(g => g.players.flatMap(p => [p.userId, p.partnerUserId, p.id].filter(Boolean))))];

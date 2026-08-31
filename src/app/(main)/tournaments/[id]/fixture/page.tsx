@@ -3,6 +3,7 @@ import { tournaments, registrations, users, categoriesTable, tournamentGroups } 
 import { eq, inArray, asc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
+import { sortGroupsByName } from "@/lib/group-order";
 import FixtureSetup from "../../fixture/FixtureSetup";
 import AmericanoSetup from "../../fixture/AmericanoSetup";
 
@@ -166,7 +167,7 @@ export default async function TournamentFixturePage({ params }: Props) {
 
     // Fetch existing groups if any
     const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
-    const initialGroups = dbGroups.map(g => {
+    const initialGroups = sortGroupsByName(dbGroups.map(g => {
         const groupPlayers = (typeof g.players === 'string' ? JSON.parse(g.players) : (g.players || [])) as any[];
         return {
             id: g.id,
@@ -175,8 +176,9 @@ export default async function TournamentFixturePage({ params }: Props) {
                 const fullPlayer = initialPlayers.find(p => p.id === gp.id);
                 return fullPlayer || gp;
             }),
+            courtNumber: g.courtNumber ?? null,
         };
-    });
+    }));
 
     if (tournament.type === 'americano') {
         return (
