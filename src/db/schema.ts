@@ -1,4 +1,4 @@
-import { mysqlTable, text, timestamp, varchar, json, boolean, int, smallint, index, uniqueIndex, datetime, primaryKey } from "drizzle-orm/mysql-core";
+import { mysqlTable, text, timestamp, varchar, json, boolean, int, bigint, smallint, index, uniqueIndex, datetime, primaryKey } from "drizzle-orm/mysql-core";
 import { sql } from "drizzle-orm";
 
 export const users = mysqlTable("users", {
@@ -820,6 +820,41 @@ export const challengeQueueRelations = relations(challengeQueue, ({ one }) => ({
 export const challengePointsRelations = relations(challengePoints, ({ one }) => ({
     challenge: one(challenges, { fields: [challengePoints.challengeId], references: [challenges.id] }),
     user: one(users, { fields: [challengePoints.userId], references: [users.id] }),
+}));
+
+// ── Contaduría ───────────────────────────────────────────────────────────────
+//
+// Libro simple de ingresos y gastos de la app (no está scopeado a un club, igual
+// que el módulo Desafío: lo llevan admin y superadmin).
+//
+// El monto se guarda en centavos y como BIGINT: con pesos en un INT el techo es
+// ~$21.000.000 por movimiento, y en decimal/float las sumas arrastran errores.
+// En centavos toda la aritmética (totales, saldo) es entera y exacta.
+export const accountingEntries = mysqlTable("accounting_entries", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    // ingreso | gasto. El signo no se guarda: el monto siempre es positivo y el
+    // tipo decide de qué lado suma, así un movimiento no puede quedar en un
+    // estado contradictorio (gasto con monto positivo, ingreso en negativo).
+    type: varchar("type", { length: 10 }).notNull(),
+    // Fecha contable "YYYY-MM-DD" como texto, igual que las fechas del Desafío:
+    // es un día, no un instante, y así no la corre la zona horaria.
+    date: varchar("date", { length: 10 }).notNull(),
+    description: varchar("description", { length: 255 }).notNull(),
+    amountCents: bigint("amount_cents", { mode: "number" }).notNull(),
+    // Quién lo registró. Se guarda el id y el nombre se resuelve por join.
+    createdByUserId: varchar("created_by_user_id", { length: 256 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+    // El listado y los totales siempre van por período, del más nuevo al más viejo.
+    dateIdx: index("accounting_entries_date_idx").on(table.date),
+    createdByIdx: index("accounting_entries_created_by_idx").on(table.createdByUserId),
+}));
+
+export type AccountingEntry = InferSelectModel<typeof accountingEntries>;
+
+export const accountingEntriesRelations = relations(accountingEntries, ({ one }) => ({
+    createdBy: one(users, { fields: [accountingEntries.createdByUserId], references: [users.id] }),
 }));
 
 export type Challenge = InferSelectModel<typeof challenges>;
