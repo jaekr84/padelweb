@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, Users2, Check, Settings, Eye, BarChart3, RefreshCw } from "lucide-react";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
 import { TournamentTimeline, TournamentStep, TournamentFormatKind } from "./TournamentTimeline";
@@ -70,6 +70,12 @@ export function TournamentNavBar({
     onFinalizeRedirect,
 }: TournamentNavBarProps) {
     const router = useRouter();
+    // Estadísticas vuelve a donde estabas: desde la gestión tiene que volver a la
+    // gestión, no a la página pública. En modo lectura no se manda nada.
+    const pathname = usePathname();
+    const statsHref = readOnly
+        ? `/tournaments/${tournamentId}/stats`
+        : `/tournaments/${tournamentId}/stats?from=${encodeURIComponent(pathname)}`;
     const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
     const [selfRefreshing, setSelfRefreshing] = useState(false);
 
@@ -206,7 +212,7 @@ export function TournamentNavBar({
                         </Link>
 
                         <Link
-                            href={`/tournaments/${tournamentId}/stats`}
+                            href={statsHref}
                             className="flex items-center gap-1.5 p-2 lg:px-3 rounded-xl bg-celeste/15 border border-celeste/40 text-celeste hover:bg-celeste hover:text-carbon-950 transition-all"
                             title="Estadísticas del torneo"
                         >

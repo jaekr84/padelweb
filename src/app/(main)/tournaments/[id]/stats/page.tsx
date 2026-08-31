@@ -8,7 +8,23 @@ import { computeTournamentStats, formatDuration, type TimedMatch } from "@/lib/t
 
 interface Props {
     params: Promise<{ id: string }>;
+    searchParams: Promise<{ from?: string }>;
 }
+
+/**
+ * A dónde vuelve el botón de atrás. `from` lo manda la barra de gestión con la
+ * ruta desde la que se entró, así que volver desde la gestión no te tira a la
+ * página pública. Se valida que sea una ruta interna de torneos: un `from`
+ * armado a mano no puede redirigir a otro sitio.
+ */
+const backTarget = (id: string, from?: string) => {
+    const safe = from
+        && from.startsWith(`/tournaments/${id}`)
+        && !from.startsWith("//")
+        && !from.includes(":");
+    if (!safe) return { href: `/tournaments/${id}/resultados`, label: "Resultados" };
+    return { href: from!, label: "Gestión" };
+};
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,8 +41,10 @@ const bracketRoundName = (round: number, _totalRounds: number) => {
     return `Ronda ${round + 1}`;
 };
 
-export default async function TournamentStatsPage({ params }: Props) {
+export default async function TournamentStatsPage({ params, searchParams }: Props) {
     const { id } = await params;
+    const { from } = await searchParams;
+    const back = backTarget(id, from);
 
     const [tournament] = await db
         .select({
@@ -80,11 +98,11 @@ export default async function TournamentStatsPage({ params }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between gap-3">
                     <Link
-                        href={`/tournaments/${id}/resultados`}
+                        href={back.href}
                         className="flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-black uppercase tracking-widest text-[9px] bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
                     >
                         <ArrowLeft className="w-3.5 h-3.5" />
-                        Resultados
+                        {back.label}
                     </Link>
                     <div className="text-right">
                         <h1 className="text-lg md:text-2xl font-black uppercase italic tracking-tighter leading-none">{tournament.name}</h1>

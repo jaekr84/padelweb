@@ -25,6 +25,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
+import BulkRegistrationModal from "./BulkRegistrationModal";
 import { SplitAttendanceList } from "./components/SplitAttendanceList";
 import { FormatSelector } from "./components/FormatSelector";
 import { Player, Group } from "./components/tournament/types";
@@ -143,6 +144,7 @@ export default function FixtureSetup({
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
     const [firstSelectedPlayerId, setFirstSelectedPlayerId] = useState<string | null>(null);
 
@@ -815,6 +817,7 @@ export default function FixtureSetup({
                                 togglePresent={togglePresent}
                                 onCheckAll={handleCheckAll}
                                 onInscribir={() => setIsPlayerModalOpen(true)}
+                                onCargaMasiva={() => setIsBulkModalOpen(true)}
                                 variant="habilitacion"
                             />
 
@@ -1196,6 +1199,15 @@ export default function FixtureSetup({
                     isIndividual={isIndividual}
                     onSuccess={onPlayerAdded}
                     existingPlayerIds={new Set(players.flatMap(p => [p.userId, p.partnerUserId]).filter(Boolean) as string[])}
+                />
+
+                <BulkRegistrationModal
+                    open={isBulkModalOpen}
+                    onClose={() => setIsBulkModalOpen(false)}
+                    tournamentId={tournamentId}
+                    isIndividual={isIndividual}
+                    categories={categories}
+                    onRegistered={(nuevos) => nuevos.forEach(onPlayerAdded)}
                 />
 
                 {/* MODAL REEMPLAZO DE PARTICIPANTE */}

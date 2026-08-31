@@ -29,6 +29,9 @@ interface UseTournamentLogicProps {
     modality: any;
 }
 
+// Slot de cuadro todavía sin definir: "TBD_<groupId>_<puesto 0-based>".
+const TBD_SLOT_RE = /^TBD_(.+)_(\d+)$/;
+
 export function useTournamentLogic({
     tournamentId,
     tournamentName,
@@ -1123,10 +1126,13 @@ export function useTournamentLogic({
         activeGroups.forEach((g, idx) => {
             const displayGroupName = (g.name && g.name.length < 10) ? g.name.toUpperCase() : String.fromCharCode(65 + idx);
             const groupLabel = displayGroupName.includes('GRUPO') ? displayGroupName : `GRUPO ${displayGroupName}`;
+            // Sólo los grupos cerrados: mostrar al puntero de un grupo en curso
+            // como si ya estuviera clasificado es información falsa.
+            if (!isGroupFinished(g.id)) return;
             computeStandings(g.id).forEach((s, i) => map.set(`${groupLabel}|${i + 1}`, s.player.name));
         });
         return map;
-    }, [groups, computeStandings]);
+    }, [groups, computeStandings, isGroupFinished]);
 
     const resolveSeedName = useCallback((name: string | null | undefined): string | null => {
         if (!name) return name ?? null;
@@ -1149,82 +1155,164 @@ export function useTournamentLogic({
         return advanceBracket(currentBracket as any, totalRounds) as BracketMatch[];
     }
 
+    /**
+     * Un cuadro armado antes de que cierren los grupos guarda slots con id
+     * "TBD_<grupo>_<puesto>". Cuando ese grupo termina hay que reemplazarlos por
+     * la pareja real: si quedaran, el cuadro mostraría nombres provisorios y el
+     * ganador se guardaría con un id que no corresponde a ninguna inscripción
+     * (y el reparto de puntos de ranking no lo encontraría).
+     */
+    const resolveBracketSlot = useCallback((slot: BracketSlot): BracketSlot => {
+        if (!slot || slot === "BYE") return slot;
+        const mt = TBD_SLOT_RE.exec((slot as Player).id ?? "");
+        if (!mt) return slot;
+        const [, groupId, rankStr] = mt;
+        if (!isGroupFinished(groupId)) return slot;
+        // El grupo cerró con menos parejas que el más grande: ese puesto era un hueco.
+        const standing = computeStandings(groupId)[Number(rankStr)];
+        return standing ? (standing.player as BracketSlot) : "BYE";
+    }, [isGroupFinished, computeStandings]);
+
+    /** Clasificados del cuadro que todavía dependen de un grupo en curso. */
+    const bracketHasPending = useCallback((m: BracketMatch) =>
+        [m.team1, m.team2].some(t => t && t !== "BYE" && TBD_SLOT_RE.test((t as Player).id ?? "")),
+        []);
+
+    // A medida que cierra cada grupo, sus clasificados entran solos al cuadro.
+    // Es lo que permite mandar llaves a cancha sin esperar a que termine la fase.
+    const resolvingBracketRef = useRef(false);
+    useEffect(() => {
+        if (readOnly || bracket.length === 0 || resolvingBracketRef.current) return;
+
+        let changed = false;
+        const next = bracket.map(m => {
+            const team1 = resolveBracketSlot(m.team1);
+            const team2 = resolveBracketSlot(m.team2);
+            if (team1 === m.team1 && team2 === m.team2) return m;
+            changed = true;
+            return { ...m, team1, team2 };
+        });
+        if (!changed) return;
+
+        resolvingBracketRef.current = true;
+        const totalRounds = Math.max(...next.map(m => m.round)) + 1;
+        const finalBracket = computeAdvancedBracket(next, totalRounds);
+        setBracket(finalBracket);
+        void saveFixture({
+            tournamentId,
+            phase: "eliminatorias",
+            groups,
+            matches,
+            bracket: finalBracket,
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid),
+            skipRevalidation: true,
+        })
+            .then(res => { if (res.ok) toast.success("Clasificados actualizados en las llaves"); })
+            .finally(() => { resolvingBracketRef.current = false; });
+        // `matches`/`groups` van al saveFixture pero no disparan el efecto: lo que
+        // importa es que cambie el bracket o el estado de los grupos.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bracket, resolveBracketSlot, readOnly]);
+
+    /** Arma el cuadro desde cero con los clasificados actuales. */
+    const runGenerateBracket = async () => {
+        const actualQualifiers = finalQualifiers.slice(0, qualLimit);
+        const totalQuals = actualQualifiers.length;
+        if (totalQuals < 2) {
+            toast.error("Se necesitan al menos 2 clasificados para generar las llaves");
+            return;
+        }
+
+        const numRounds = Math.ceil(Math.log2(totalQuals));
+        const bracketSize = Math.pow(2, numRounds);
+        setSaving(true);
+
+        try {
+            let newBracket: BracketMatch[] = [];
+            for (let r = 0; r < numRounds; r++) {
+                for (let s = 0; s < Math.pow(2, r); s++) {
+                    newBracket.push({ id: `b_${r}_${s}`, round: r, slot: s, team1: null, team2: null, confirmed: false });
+                }
+            }
+
+            // ── Group Protection Seeding ──
+            // Orden de seeds + protección de grupo extraídos a @/lib/matchmaking.
+            const seedPositions = getSeedingOrder(bracketSize);
+            const seedMap = buildSeedMap(toSeedInput(actualQualifiers));
+
+            const firstRoundIdx = numRounds - 1;
+            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+
+            firstRoundMatches.forEach((m, idx) => {
+                const s1 = seedPositions[idx * 2];
+                const s2 = seedPositions[idx * 2 + 1];
+                const q1 = seedMap.get(s1);
+                const q2 = seedMap.get(s2);
+                const t1 = isByeQualifier(q1) ? "BYE" : q1!.player;
+                const t2 = isByeQualifier(q2) ? "BYE" : q2!.player;
+
+                m.team1 = t1 as BracketSlot;
+                m.team2 = t2 as BracketSlot;
+
+                if (m.team1 === "BYE" || m.team2 === "BYE") {
+                    m.confirmed = true;
+                    const winner = m.team1 === "BYE" ? m.team2 : m.team1;
+                    if (winner && winner !== "BYE") {
+                        m.winnerId = (winner as Player).id;
+                        m.winnerName = (winner as Player).name;
+                    }
+                }
+            });
+
+            const finalBracket = computeAdvancedBracket(newBracket, numRounds);
+            const res = await saveFixture({
+                tournamentId, phase: "eliminatorias", groups, matches, bracket: finalBracket, 
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
+
+            if (res.ok) {
+                setBracket(finalBracket);
+                setStep("elim");
+                toast.success("Cuadro generado correctamente");
+            } else {
+                toast.error("Error al guardar: " + res.error);
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al generar cuadro");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    /**
+     * Rearmar el cuadro borra los resultados de las llaves ya jugadas, así que
+     * pide confirmación — pero sólo cuando hay algo que perder. La primera vez no
+     * hay cuadro y el aviso no tenía sentido.
+     *
+     * Ojo: NO hace falta rearmar para que entren los clasificados de un grupo que
+     * recién cerró; eso se resuelve solo. Rearmar es para cambiar el cupo de
+     * clasificados o rehacer un sorteo mal armado.
+     */
     const handleGenerateBracket = async () => {
+        if (bracket.length === 0) {
+            await runGenerateBracket();
+            return;
+        }
+
+        const jugadas = bracket.filter(m => m.confirmed || m.status === 'finished' || m.status === 'completed').length;
         setConfirmModal({
             open: true,
-            title: "Regenerar Cuadro",
-            description: "¿Estás seguro de que deseas regenerar las llaves? Se perderán todos los resultados actuales del cuadro y se armará uno nuevo con los clasificados actuales.",
-            variant: 'danger',
+            title: "Rearmar el cuadro",
+            description: jugadas > 0
+                ? `Se va a armar un cuadro nuevo con los clasificados actuales y se pierden los resultados de ${jugadas} llave${jugadas === 1 ? "" : "s"} ya jugada${jugadas === 1 ? "" : "s"}. Para que entren los clasificados de un grupo que recién terminó no hace falta rearmar: se actualizan solos.`
+                : "Se va a armar un cuadro nuevo con los clasificados actuales. Para que entren los clasificados de un grupo que recién terminó no hace falta rearmar: se actualizan solos.",
+            variant: jugadas > 0 ? 'danger' : 'primary',
             onConfirm: async () => {
-                const actualQualifiers = finalQualifiers.slice(0, qualLimit);
-                const totalQuals = actualQualifiers.length;
-                if (totalQuals < 2) {
-                    toast.error("Se necesitan al menos 2 clasificados para generar las llaves");
-                    return;
-                }
-
-                const numRounds = Math.ceil(Math.log2(totalQuals));
-                const bracketSize = Math.pow(2, numRounds);
-                setSaving(true);
                 setConfirmModal(prev => ({ ...prev, open: false }));
-
-                try {
-                    let newBracket: BracketMatch[] = [];
-                    for (let r = 0; r < numRounds; r++) {
-                        for (let s = 0; s < Math.pow(2, r); s++) {
-                            newBracket.push({ id: `b_${r}_${s}`, round: r, slot: s, team1: null, team2: null, confirmed: false });
-                        }
-                    }
-
-                    // ── Group Protection Seeding ──
-                    // Orden de seeds + protección de grupo extraídos a @/lib/matchmaking.
-                    const seedPositions = getSeedingOrder(bracketSize);
-                    const seedMap = buildSeedMap(toSeedInput(actualQualifiers));
-
-                    const firstRoundIdx = numRounds - 1;
-                    const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
-
-                    firstRoundMatches.forEach((m, idx) => {
-                        const s1 = seedPositions[idx * 2];
-                        const s2 = seedPositions[idx * 2 + 1];
-                        const q1 = seedMap.get(s1);
-                        const q2 = seedMap.get(s2);
-                        const t1 = isByeQualifier(q1) ? "BYE" : q1!.player;
-                        const t2 = isByeQualifier(q2) ? "BYE" : q2!.player;
-
-                        m.team1 = t1 as BracketSlot;
-                        m.team2 = t2 as BracketSlot;
-
-                        if (m.team1 === "BYE" || m.team2 === "BYE") {
-                            m.confirmed = true;
-                            const winner = m.team1 === "BYE" ? m.team2 : m.team1;
-                            if (winner && winner !== "BYE") {
-                                m.winnerId = (winner as Player).id;
-                                m.winnerName = (winner as Player).name;
-                            }
-                        }
-                    });
-
-                    const finalBracket = computeAdvancedBracket(newBracket, numRounds);
-                    const res = await saveFixture({
-                        tournamentId, phase: "eliminatorias", groups, matches, bracket: finalBracket, 
-                        presentPlayerIds: Array.from(present),
-                        paidPlayerIds: Array.from(paid)
-                    });
-
-                    if (res.ok) {
-                        setBracket(finalBracket);
-                        setStep("elim");
-                        toast.success("Cuadro generado correctamente");
-                    } else {
-                        toast.error("Error al guardar: " + res.error);
-                    }
-                } catch (e) {
-                    console.error(e);
-                    toast.error("Error al generar cuadro");
-                } finally {
-                    setSaving(false);
-                }
+                await runGenerateBracket();
             }
         });
     };
@@ -1302,6 +1390,11 @@ export function useTournamentLogic({
     };
 
     const handleBracketStart = async (matchId: string) => {
+        const target = bracket.find(m => m.id === matchId);
+        if (target && bracketHasPending(target)) {
+            toast.error("Falta definir un clasificado: ese grupo todavía no terminó");
+            return;
+        }
         const updated = bracket.map(m => m.id === matchId ? { ...m, status: 'in_progress' } : m);
         setBracket(updated);
         setSaving(true);
@@ -1600,6 +1693,7 @@ export function useTournamentLogic({
         matches, setMatches,
         bracket, setBracket,
         resolvedBracket,
+        bracketHasPending,
         present, setPresent,
         paid, setPaid,
         isPlayersModalOpen, setIsPlayersModalOpen,

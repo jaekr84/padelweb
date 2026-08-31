@@ -108,6 +108,36 @@ export default function TournamentManager(props: TournamentManagerProps) {
         maxQualLimit
     } = useTournamentLogic(props as any);
 
+    // Las llaves se muestran igual en la vista de grupos y en la de eliminatorias:
+    // se define una sola vez para que las dos no se desincronicen.
+    const playoffSection = (
+        <>
+            <AmericanoPlayoffQueue
+                bracket={resolvedBracket}
+                readOnly={readOnly}
+                saving={saving}
+                handleBracketScore={handleBracketScore}
+                handleBracketStart={handleBracketStart}
+                handleBracketConfirm={handleBracketConfirm}
+                handleBracketEdit={handleReopenMatch}
+                handleSwapPlayers={handleSwapPlayers}
+                swappingPlayer={swappingPlayer}
+                skipReopenConfirm
+            />
+
+            <AmericanoBracketMirror
+                bracket={resolvedBracket}
+                readOnly={readOnly}
+                saving={saving}
+                handleBracketScore={handleBracketScore}
+                handleBracketStart={handleBracketStart}
+                handleBracketConfirm={handleBracketConfirm}
+                handleBracketEdit={handleReopenMatch}
+                skipReopenConfirm
+            />
+        </>
+    );
+
     return (
         <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
             {/* Page Background Watermark */}
@@ -264,30 +294,54 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                                 qualLimit={qualLimit}
                                             />
 
+                                            {/* Ya no espera a que termine la fase: con los grupos
+                                                cerrados a medias el cuadro se arma con clasificados
+                                                provisorios que se resuelven solos, y así las canchas
+                                                libres se pueden usar para adelantar llaves. */}
                                             {!readOnly && (
                                                 <div className="pt-8 flex flex-col items-center gap-3">
                                                     <button
-                                                        onClick={() => isGroupStageFinished && setStep("elim")}
-                                                        disabled={!isGroupStageFinished}
-                                                        className={`
-                                                            group relative px-12 py-4 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all flex items-center gap-4 text-sm overflow-hidden
-                                                            ${isGroupStageFinished 
-                                                                ? "bg-azul-primary text-white shadow-2xl shadow-azul-primary/20 hover:scale-105 active:scale-95 cursor-pointer" 
-                                                                : "bg-muted text-foreground/20 cursor-not-allowed border border-border/50 grayscale opacity-50"}
-                                                        `}
+                                                        onClick={handleGenerateBracket}
+                                                        className="group relative px-12 py-4 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all flex items-center gap-4 text-sm overflow-hidden bg-azul-primary text-white shadow-2xl shadow-azul-primary/20 hover:scale-105 active:scale-95 cursor-pointer"
                                                     >
-                                                        {isGroupStageFinished && <div className="absolute inset-0 bg-surface-raised translate-y-full group-hover:translate-y-0 transition-transform duration-300" />}
-                                                        <span className="relative">Armar Play-offs</span>
-                                                        <Trophy className={`w-5 h-5 relative ${isGroupStageFinished ? "animate-bounce" : ""}`} />
+                                                        <div className="absolute inset-0 bg-surface-raised translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                                        <span className="relative">{bracket.length > 0 ? "Rearmar Play-offs" : "Armar Play-offs"}</span>
+                                                        <Trophy className="w-5 h-5 relative" />
                                                     </button>
                                                     {!isGroupStageFinished && (
-                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/30 animate-pulse">
-                                                            Pendiente: Completar todos los partidos de grupos
+                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/40 text-center max-w-sm">
+                                                            Los grupos sin terminar entran como "1º Grupo X" y se completan solos al cerrarse
                                                         </p>
                                                     )}
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* Llaves en la misma página: con grupos todavía en
+                                            juego, las llaves ya definidas se pueden mandar a
+                                            cancha en vez de dejar canchas libres esperando. */}
+                                        {bracket.length > 0 && (
+                                            <div className="space-y-4 pt-4 border-t border-border/40">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Trophy className="w-3.5 h-3.5 text-azul-primary" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Play-offs</span>
+                                                        {!isGroupStageFinished && (
+                                                            <span className="text-[8px] font-black uppercase tracking-widest text-foreground/30">
+                                                                · se completan al cerrar cada grupo
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setStep("elim")}
+                                                        className="text-[9px] font-black uppercase tracking-widest text-foreground/40 hover:text-azul-primary transition-colors"
+                                                    >
+                                                        Ver solo llaves →
+                                                    </button>
+                                                </div>
+                                                {playoffSection}
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
@@ -310,29 +364,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             )}
                                         </div>
 
-                                        <AmericanoPlayoffQueue
-                                            bracket={resolvedBracket}
-                                            readOnly={readOnly}
-                                            saving={saving}
-                                            handleBracketScore={handleBracketScore}
-                                            handleBracketStart={handleBracketStart}
-                                            handleBracketConfirm={handleBracketConfirm}
-                                            handleBracketEdit={handleReopenMatch}
-                                            handleSwapPlayers={handleSwapPlayers}
-                                            swappingPlayer={swappingPlayer}
-                                            skipReopenConfirm
-                                        />
-
-                                        <AmericanoBracketMirror
-                                            bracket={resolvedBracket}
-                                            readOnly={readOnly}
-                                            saving={saving}
-                                            handleBracketScore={handleBracketScore}
-                                            handleBracketStart={handleBracketStart}
-                                            handleBracketConfirm={handleBracketConfirm}
-                                            handleBracketEdit={handleReopenMatch}
-                                            skipReopenConfirm
-                                        />
+                                        {playoffSection}
                                     </div>
                                 )}
                             </motion.div>

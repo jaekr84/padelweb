@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, UserCheck, Search, Plus, Power, PowerOff } from "lucide-react";
+import { CreditCard, UserCheck, Search, Plus, Power, PowerOff, Users } from "lucide-react";
 
 // Shared attendance list used by both Americano and Robin (group) setups so the
 // "Asistencia" phase looks and behaves identically across tournament systems.
@@ -35,6 +35,7 @@ interface SplitAttendanceListProps {
     togglePresent: (checkinId: string) => void;
     onCheckAll: (type: 'paid' | 'present') => void;
     onInscribir?: () => void;
+    onCargaMasiva?: () => void;
     variant?: "asistencia" | "habilitacion";
 }
 
@@ -52,6 +53,7 @@ export function SplitAttendanceList({
     togglePresent,
     onCheckAll,
     onInscribir,
+    onCargaMasiva,
     variant = "asistencia",
 }: SplitAttendanceListProps) {
     const isHabilitacion = variant === "habilitacion";
@@ -71,6 +73,16 @@ export function SplitAttendanceList({
                     <span className="label-tech text-[8px] text-muted-foreground bg-surface border border-hairline rounded-lg px-2.5 py-1.5">
                         <span className="text-volt-ink text-scoreboard">{presentCount}</span> {isHabilitacion ? "habilitados" : "presentes"}
                     </span>
+                    {onCargaMasiva && (
+                        <button
+                            onClick={onCargaMasiva}
+                            title="Cargar varias inscripciones de una"
+                            className="px-3 py-1.5 bg-surface border border-hairline rounded-lg label-tech text-[8px] text-muted-foreground hover:text-celeste hover:border-celeste/40 transition-all flex items-center gap-1.5"
+                        >
+                            <Users className="w-3 h-3" />
+                            Carga masiva
+                        </button>
+                    )}
                     {onInscribir && (
                         <button
                             onClick={onInscribir}

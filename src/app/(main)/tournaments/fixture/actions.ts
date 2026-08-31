@@ -400,6 +400,8 @@ export async function getAvailablePlayers(tournamentId: string) {
             email: u.email,
             category: u.category,
             gender: u.gender,
+            side: u.side,
+            isGuest: u.isGuest,
             clubId: u.clubId
         }));
     } catch (err) {
@@ -830,6 +832,186 @@ export async function registerManualPlayer(
     } catch (err) {
         console.error("[registerManualPlayer]", err);
         return { ok: false, error: String(err) };
+    }
+}
+
+/**
+ * Inscripción masiva: una fila por inscripción (una pareja, o un jugador en los
+ * torneos individuales). Existe porque mucha gente no quiere crearse una cuenta
+ * para jugar un torneo suelto.
+ *
+ * Los jugadores sin cuenta se crean como INVITADOS (`isGuest`), igual que en el
+ * módulo Desafío: quedan fuera de los listados generales y después se pueden
+ * promover a cuenta real o fusionar con una existente sin perder historial ni
+ * puntos. Ver src/app/(main)/desafio/actions/invitados.ts.
+ */
+export type BulkRegistrationRow = {
+    /** Clave del cliente, para devolver el resultado fila por fila. */
+    key: string;
+    player1: ManualPlayerData;
+    player2?: ManualPlayerData;
+};
+
+export type BulkRegistrationResult = {
+    key: string;
+    ok: boolean;
+    error?: string;
+    /** Inscripción creada, con la forma que usa la lista de jugadores del armado. */
+    player?: {
+        id: string;
+        name: string;
+        category: string;
+        player1: string;
+        player2: string | null;
+        userId: string;
+        partnerUserId: string | null;
+    };
+};
+
+// Mismo dominio inválido que usa el módulo Desafío: nadie puede recibir mail ahí
+// ni registrarse con él por accidente. Al promover al invitado se reemplaza.
+const guestEmail = (id: string) => `invitado.${id}@invitado.local`;
+
+export async function bulkRegisterPlayers(
+    tournamentId: string,
+    rows: BulkRegistrationRow[],
+): Promise<{ ok: boolean; error?: string; results: BulkRegistrationResult[] }> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) return { ok: false, error: "No autorizado", results: [] };
+
+        const [t] = await db
+            .select({ modalidad: tournaments.modalidad, createdByUserId: tournaments.createdByUserId })
+            .from(tournaments)
+            .where(eq(tournaments.id, tournamentId))
+            .limit(1);
+        if (!t) return { ok: false, error: "Torneo no encontrado", results: [] };
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = t.createdByUserId === session.userId;
+        if (!isAdmin && !isOwner) {
+            return { ok: false, error: "No tenés permiso para gestionar este torneo", results: [] };
+        }
+
+        // Quiénes ya están inscriptos: se arranca de la base y se va sumando lo
+        // que entra en esta misma tanda, para que la tanda no se duplique a sí misma.
+        const yaInscriptos = new Set<string>();
+        (await db
+            .select({ u1: registrations.userId, u2: registrations.partnerUserId })
+            .from(registrations)
+            .where(eq(registrations.tournamentId, tournamentId)))
+            .forEach(r => {
+                if (r.u1) yaInscriptos.add(r.u1);
+                if (r.u2) yaInscriptos.add(r.u2);
+            });
+
+        const results: BulkRegistrationResult[] = [];
+
+        for (const row of rows) {
+            try {
+                const nombre1 = (row.player1?.name ?? "").trim();
+                const nombre2 = (row.player2?.name ?? "").trim();
+
+                if (!row.player1?.userId && !nombre1) {
+                    results.push({ key: row.key, ok: false, error: "Falta el nombre" });
+                    continue;
+                }
+                if (row.player2 && !row.player2.userId && !nombre2) {
+                    results.push({ key: row.key, ok: false, error: "Falta el nombre del compañero" });
+                    continue;
+                }
+                if (row.player2 && row.player1.userId && row.player1.userId === row.player2.userId) {
+                    results.push({ key: row.key, ok: false, error: "La pareja no puede ser la misma persona" });
+                    continue;
+                }
+
+                // Cada fila en su propia transacción: si falla la inscripción no
+                // queda un invitado suelto, y las demás filas siguen su curso.
+                const resultado = await db.transaction(async (tx) => {
+                    const resolver = async (data: ManualPlayerData) => {
+                        if (data.userId) {
+                            const [existing] = await tx.select().from(users).where(eq(users.id, data.userId)).limit(1);
+                            if (!existing) throw new Error("El jugador elegido ya no existe");
+
+                            const updates: Record<string, unknown> = {};
+                            if (data.side !== undefined && (data.side || null) !== existing.side) updates.side = data.side || null;
+                            if (data.category && data.category !== existing.category) updates.category = data.category;
+                            if (data.gender && data.gender !== existing.gender) updates.gender = data.gender;
+                            if (Object.keys(updates).length > 0) {
+                                await tx.update(users).set(updates).where(eq(users.id, existing.id));
+                            }
+                            const nombre = [existing.firstName, existing.lastName].filter(Boolean).join(" ").trim()
+                                || existing.email.split("@")[0];
+                            return { id: existing.id, name: nombre };
+                        }
+
+                        const id = crypto.randomUUID();
+                        const partes = (data.name ?? "").trim().split(/\s+/);
+                        await tx.insert(users).values({
+                            id,
+                            email: guestEmail(id),
+                            // Sin hash no hay login posible.
+                            passwordHash: null,
+                            role: "jugador",
+                            firstName: partes[0],
+                            lastName: partes.slice(1).join(" ") || null,
+                            category: data.category || "D",
+                            gender: data.gender || null,
+                            side: data.side || null,
+                            clubId: data.clubId || null,
+                            isGuest: true,
+                        });
+                        return { id, name: (data.name ?? "").trim() };
+                    };
+
+                    const u1 = await resolver(row.player1);
+                    if (yaInscriptos.has(u1.id)) throw new Error(`${u1.name} ya está inscripto`);
+
+                    const u2 = row.player2 ? await resolver(row.player2) : null;
+                    if (u2 && yaInscriptos.has(u2.id)) throw new Error(`${u2.name} ya está inscripto`);
+                    if (u2 && u2.id === u1.id) throw new Error("La pareja no puede ser la misma persona");
+
+                    const registrationId = crypto.randomUUID();
+                    await tx.insert(registrations).values({
+                        id: registrationId,
+                        tournamentId,
+                        userId: u1.id,
+                        partnerUserId: u2?.id ?? null,
+                        category: row.player1.category || "D",
+                        status: "confirmed",
+                    });
+
+                    return { u1, u2, registrationId };
+                });
+
+                yaInscriptos.add(resultado.u1.id);
+                if (resultado.u2) yaInscriptos.add(resultado.u2.id);
+
+                results.push({
+                    key: row.key,
+                    ok: true,
+                    player: {
+                        id: resultado.registrationId,
+                        name: resultado.u2 ? `${resultado.u1.name} / ${resultado.u2.name}` : resultado.u1.name,
+                        category: row.player1.category || "D",
+                        player1: resultado.u1.name,
+                        player2: resultado.u2?.name ?? null,
+                        userId: resultado.u1.id,
+                        partnerUserId: resultado.u2?.id ?? null,
+                    },
+                });
+            } catch (err: any) {
+                results.push({ key: row.key, ok: false, error: err?.message || String(err) });
+            }
+        }
+
+        revalidatePath(`/tournaments/${tournamentId}/fixture`);
+        revalidatePath(`/tournaments/${tournamentId}`);
+
+        return { ok: results.some(r => r.ok), results };
+    } catch (err) {
+        console.error("[bulkRegisterPlayers]", err);
+        return { ok: false, error: String(err), results: [] };
     }
 }
 
