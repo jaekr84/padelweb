@@ -333,12 +333,18 @@ export const ORIGEN = {
      * cortesías, el que pagó de más) van como movimientos manuales aparte.
      */
     AUTO_INSCRIPCIONES: "auto_inscripciones",
+    /**
+     * Lo generó el reparto de premios. A diferencia del de inscripciones, SÍ se
+     * edita y se borra a mano: nada lo reescribe por atrás, sólo se reemplaza
+     * cuando el admin vuelve a apretar "generar" (y ahí se avisa).
+     */
+    PREMIOS: "premios",
 } as const;
 
 export type Origen = (typeof ORIGEN)[keyof typeof ORIGEN];
 
 export const esOrigen = (v: unknown): v is Origen =>
-    v === ORIGEN.MANUAL || v === ORIGEN.AUTO_INSCRIPCIONES;
+    v === ORIGEN.MANUAL || v === ORIGEN.AUTO_INSCRIPCIONES || v === ORIGEN.PREMIOS;
 
 /** Un movimiento del sistema no se toca a mano. */
 export const esAutomatico = (origen: string) => origen === ORIGEN.AUTO_INSCRIPCIONES;
@@ -366,4 +372,108 @@ export const EVENTO_CAJA_DESACTUALIZADA = "contaduria:caja-desactualizada";
 export function avisarCajaDesactualizada() {
     if (typeof window === "undefined") return;
     window.dispatchEvent(new CustomEvent(EVENTO_CAJA_DESACTUALIZADA));
+}
+
+// ── Reparto de premios ──────────────────────────────────────────────────────
+//
+// Los porcentajes viajan en PUNTOS BÁSICOS: centésimas de punto porcentual, en
+// enteros. 40 % = 4000, 33,33 % = 3333. Se evita la coma flotante en todo el
+// camino porque el reparto termina en centavos y un 0,1 + 0,2 mal sumado se
+// convierte en un peso que no cierra contra la caja.
+
+/** 100 % expresado en puntos básicos. */
+export const PUNTOS_BASICOS_TOTALES = 10_000;
+
+/** Como mucho tantos puestos: más que eso no es un podio, es una lista. */
+export const MAX_PUESTOS = 20;
+
+export type PuestoPremio = {
+    /** "1er puesto", "Campeón", lo que el admin escriba. */
+    rotulo: string;
+    /** Porción del pool, en puntos básicos. */
+    puntosBasicos: number;
+};
+
+export type ConfigPremios = {
+    /** Qué parte de lo recaudado va a premios, en puntos básicos. */
+    poolPuntosBasicos: number;
+    puestos: PuestoPremio[];
+    /** Ingresos del evento cuando se generó por última vez. 0 si nunca se generó. */
+    baseCentavos: number;
+};
+
+/** Puntos básicos → "40", "33,33". Sin ceros de relleno. */
+export function formatearPorcentaje(puntosBasicos: number): string {
+    const valor = puntosBasicos / 100;
+    return Number.isInteger(valor)
+        ? String(valor)
+        : valor.toFixed(2).replace(/0$/, "").replace(".", ",");
+}
+
+/**
+ * Texto tipeado → puntos básicos. Acepta coma o punto decimal ("33,33").
+ * Devuelve `null` si no es un porcentaje entre 0 y 100.
+ */
+export function parsearPorcentaje(texto: string): number | null {
+    const limpio = (texto ?? "").replace(/\s|%/g, "").replace(",", ".");
+    if (!limpio || !/^\d*\.?\d*$/.test(limpio)) return null;
+
+    const valor = Number(limpio);
+    if (!Number.isFinite(valor) || valor < 0 || valor > 100) return null;
+
+    return Math.round(valor * 100);
+}
+
+export type PremioCalculado = PuestoPremio & { montoCentavos: number };
+
+/**
+ * Reparte el pool entre los puestos según sus porcentajes.
+ *
+ * El resto de la división entera se le suma al primer puesto, así la suma de
+ * los premios es EXACTAMENTE el pool: si cada monto se redondeara por su lado,
+ * faltarían o sobrarían centavos y el gasto no cerraría contra lo recaudado.
+ *
+ * La misma función la usan la vista previa y la generación, para que lo que se
+ * ve en pantalla sea lo que termina en la caja.
+ */
+export function repartirPremios(poolCentavos: number, puestos: PuestoPremio[]): PremioCalculado[] {
+    if (poolCentavos <= 0 || puestos.length === 0) {
+        return puestos.map((p) => ({ ...p, montoCentavos: 0 }));
+    }
+
+    const repartidos = puestos.map((p) => ({
+        ...p,
+        montoCentavos: Math.floor((poolCentavos * p.puntosBasicos) / PUNTOS_BASICOS_TOTALES),
+    }));
+
+    // Sólo se compensa cuando los porcentajes cubren el 100 %: si el admin
+    // repartió el 90 %, ese 10 % queda sin asignar a propósito y no hay que
+    // regalárselo al primero.
+    const suman100 = puestos.reduce((t, p) => t + p.puntosBasicos, 0) === PUNTOS_BASICOS_TOTALES;
+    if (suman100) {
+        const asignado = repartidos.reduce((t, p) => t + p.montoCentavos, 0);
+        repartidos[0].montoCentavos += poolCentavos - asignado;
+    }
+
+    return repartidos;
+}
+
+/** El pool: la parte de lo recaudado destinada a premios. */
+export const calcularPool = (ingresosCentavos: number, poolPuntosBasicos: number) =>
+    Math.floor((Math.max(0, ingresosCentavos) * poolPuntosBasicos) / PUNTOS_BASICOS_TOTALES);
+
+/** Los puestos que se ofrecen al abrir por primera vez. */
+export const PUESTOS_POR_DEFECTO: PuestoPremio[] = [
+    { rotulo: "1er puesto", puntosBasicos: 5000 },
+    { rotulo: "2do puesto", puntosBasicos: 3000 },
+    { rotulo: "3er puesto", puntosBasicos: 2000 },
+];
+
+/** Rótulo sugerido para el puesto que se agrega. */
+export function rotuloDePuesto(indice: number): string {
+    const ordinales = [
+        "1er", "2do", "3er", "4to", "5to", "6to", "7mo", "8vo", "9no", "10mo",
+        "11vo", "12vo", "13vo", "14vo", "15to", "16to", "17mo", "18vo", "19no", "20mo",
+    ];
+    return `${ordinales[indice] ?? indice + 1} puesto`;
 }

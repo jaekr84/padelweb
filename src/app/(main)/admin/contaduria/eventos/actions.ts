@@ -8,13 +8,15 @@
 // misma fila en la misma tabla, sólo que con el evento adentro.
 
 import { db } from "@/db";
-import { accountingEntries } from "@/db/schema";
+import { accountingEntries, accountingPrizeConfigs } from "@/db/schema";
 import { and, count, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
+import { revalidatePath } from "next/cache";
 import {
-    RUBRO, TIPO_MOVIMIENTO, claveDeEvento, esRubro, esTipoEvento, porFechaDesc,
-    type EsperadoInscripciones, type Movimiento, type ResumenEvento, type Rubro, type TipoEvento,
-    type TipoMovimiento, type Totales,
+    MAX_PUESTOS, ORIGEN, PUNTOS_BASICOS_TOTALES, RUBRO, TIPO_MOVIMIENTO, calcularPool, claveDeEvento,
+    esRubro, esTipoEvento, formatearPorcentaje, hoyISO, porFechaDesc, repartirPremios,
+    type ConfigPremios, type EsperadoInscripciones, type Movimiento, type PuestoPremio,
+    type ResumenEvento, type Rubro, type TipoEvento, type TipoMovimiento, type Totales,
 } from "@/lib/contaduria";
 import { leerEvento, obtenerPagadores, type Pagador } from "@/lib/contaduria-server";
 import { obtenerMovimientos, obtenerOpcionesDeEvento, obtenerTotales } from "../actions";
@@ -282,4 +284,182 @@ async function contarMovimientos(tipo: TipoEvento, id: string): Promise<number> 
         .from(accountingEntries)
         .where(and(eq(accountingEntries.eventType, tipo), eq(accountingEntries.eventId, id)));
     return Number(fila?.cantidad ?? 0);
+}
+
+// ── Reparto de premios ──────────────────────────────────────────────────────
+
+export type DatosPremios = {
+    /** Ingresos del evento ahora mismo: la base sobre la que se calcula el pool. */
+    ingresosCentavos: number;
+    /** `null` si el evento nunca generó premios. */
+    config: ConfigPremios | null;
+};
+
+/** Ingresos del evento (todos los rubros). Es la base del pool de premios. */
+async function ingresosDelEvento(tipo: TipoEvento, id: string): Promise<number> {
+    const [fila] = await db
+        .select({ total: sql<string>`sum(${accountingEntries.amountCents})` })
+        .from(accountingEntries)
+        .where(and(
+            eq(accountingEntries.eventType, tipo),
+            eq(accountingEntries.eventId, id),
+            eq(accountingEntries.type, TIPO_MOVIMIENTO.INGRESO),
+        ));
+    return Number(fila?.total ?? 0);
+}
+
+/** Los puestos guardados, tolerando basura en el JSON. */
+function leerPuestos(json: unknown): PuestoPremio[] {
+    let valor = json;
+    if (typeof valor === "string") {
+        try { valor = JSON.parse(valor); } catch { return []; }
+    }
+    if (!Array.isArray(valor)) return [];
+
+    return valor
+        .map((p) => ({
+            rotulo: String((p as PuestoPremio)?.rotulo ?? "").slice(0, 120),
+            puntosBasicos: Math.round(Number((p as PuestoPremio)?.puntosBasicos ?? 0)),
+        }))
+        .filter((p) => p.rotulo && Number.isFinite(p.puntosBasicos) && p.puntosBasicos >= 0);
+}
+
+export async function obtenerDatosPremios(tipoCrudo: string, id: string): Promise<DatosPremios | null> {
+    if (!(await esAdmin())) return null;
+    if (!esTipoEvento(tipoCrudo) || !id) return null;
+    const tipo = tipoCrudo;
+
+    const [ingresosCentavos, filas] = await Promise.all([
+        ingresosDelEvento(tipo, id),
+        db.select({
+            pool: accountingPrizeConfigs.poolBasisPoints,
+            puestos: accountingPrizeConfigs.positions,
+            base: accountingPrizeConfigs.baseCents,
+        })
+            .from(accountingPrizeConfigs)
+            .where(and(
+                eq(accountingPrizeConfigs.eventType, tipo),
+                eq(accountingPrizeConfigs.eventId, id),
+            ))
+            .limit(1),
+    ]);
+
+    const guardada = filas[0];
+    return {
+        ingresosCentavos,
+        config: guardada
+            ? {
+                poolPuntosBasicos: Number(guardada.pool ?? 0),
+                puestos: leerPuestos(guardada.puestos),
+                baseCentavos: Number(guardada.base ?? 0),
+            }
+            : null,
+    };
+}
+
+/**
+ * Guarda el reparto y genera los gastos de premio, uno por puesto.
+ *
+ * Reemplaza los premios que ya había para el evento en vez de sumarles: el
+ * reparto es una foto del podio, no un historial. Por eso la pantalla avisa
+ * antes de pisar una edición hecha a mano.
+ */
+export async function generarPremios(
+    tipoCrudo: string,
+    id: string,
+    poolPuntosBasicos: number,
+    puestosCrudos: PuestoPremio[],
+): Promise<{ ok: true; generados: number; totalCentavos: number } | { ok: false; error: string }> {
+    try {
+        const session = await getSession();
+        if (session?.role !== "admin" && session?.role !== "superadmin") {
+            return { ok: false, error: "No tenés permiso para gestionar la contaduría." };
+        }
+        if (!esTipoEvento(tipoCrudo) || !id) return { ok: false, error: "El evento no es válido." };
+        const tipo = tipoCrudo;
+
+        const pool = Math.round(Number(poolPuntosBasicos));
+        if (!Number.isFinite(pool) || pool <= 0 || pool > PUNTOS_BASICOS_TOTALES) {
+            return { ok: false, error: "El porcentaje destinado a premios tiene que estar entre 0 y 100." };
+        }
+
+        const puestos = leerPuestos(puestosCrudos);
+        if (puestos.length === 0) return { ok: false, error: "Agregá al menos un puesto." };
+        if (puestos.length > MAX_PUESTOS) return { ok: false, error: `No puede haber más de ${MAX_PUESTOS} puestos.` };
+
+        const suma = puestos.reduce((t, p) => t + p.puntosBasicos, 0);
+        if (suma > PUNTOS_BASICOS_TOTALES) {
+            return { ok: false, error: "Los porcentajes de los puestos suman más del 100%." };
+        }
+
+        const evento = await leerEvento(tipo, id);
+        const ingresos = await ingresosDelEvento(tipo, id);
+        const poolCentavos = calcularPool(ingresos, pool);
+        if (poolCentavos <= 0) {
+            return { ok: false, error: "Todavía no hay ingresos cargados en el evento: no hay nada para repartir." };
+        }
+
+        const premios = repartirPremios(poolCentavos, puestos).filter((p) => p.montoCentavos > 0);
+        if (premios.length === 0) {
+            return { ok: false, error: "Con esos porcentajes ningún puesto llega a un peso." };
+        }
+
+        // La fecha contable es la del evento, igual que en las inscripciones: el
+        // premio pertenece al torneo, no al día en que se apretó el botón.
+        const fecha = evento?.fecha ?? hoyISO();
+        const nombreEvento = evento?.nombre ?? null;
+
+        await db.transaction(async (tx) => {
+            // Reemplazo, no acumulación: si no, regenerar duplicaría el podio.
+            await tx.delete(accountingEntries).where(and(
+                eq(accountingEntries.eventType, tipo),
+                eq(accountingEntries.eventId, id),
+                eq(accountingEntries.origin, ORIGEN.PREMIOS),
+            ));
+
+            await tx.insert(accountingEntries).values(premios.map((p) => ({
+                id: crypto.randomUUID(),
+                type: TIPO_MOVIMIENTO.GASTO,
+                date: fecha,
+                // El porcentaje va en la descripción para que el movimiento se
+                // explique solo cuando se lo mira desde la caja general.
+                description: `${p.rotulo} (${formatearPorcentaje(p.puntosBasicos)}%)`.toUpperCase().slice(0, 255),
+                amountCents: p.montoCentavos,
+                category: RUBRO.PREMIOS_DINERO,
+                origin: ORIGEN.PREMIOS,
+                eventType: tipo,
+                eventId: id,
+                eventName: nombreEvento,
+                createdByUserId: session.userId,
+            })));
+
+            // `base_cents` guarda con qué recaudación se generó: es lo que
+            // después permite avisar "entró más plata, el pool cambió".
+            await tx.insert(accountingPrizeConfigs).values({
+                eventType: tipo,
+                eventId: id,
+                poolBasisPoints: pool,
+                positions: puestos,
+                baseCents: ingresos,
+                updatedByUserId: session.userId,
+            }).onDuplicateKeyUpdate({
+                set: {
+                    poolBasisPoints: pool,
+                    positions: puestos,
+                    baseCents: ingresos,
+                    updatedByUserId: session.userId,
+                },
+            });
+        });
+
+        revalidatePath("/admin/contaduria", "layout");
+        return {
+            ok: true,
+            generados: premios.length,
+            totalCentavos: premios.reduce((t, p) => t + p.montoCentavos, 0),
+        };
+    } catch (error) {
+        console.error("[generarPremios]", error);
+        return { ok: false, error: "No se pudieron generar los premios." };
+    }
 }

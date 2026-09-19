@@ -890,3 +890,29 @@ export type ChallengePair = InferSelectModel<typeof challengePairs>;
 export type ChallengeMatch = InferSelectModel<typeof challengeMatches>;
 export type ChallengeQueueEntry = InferSelectModel<typeof challengeQueue>;
 export type ChallengePoint = InferSelectModel<typeof challengePoints>;
+
+
+// ── Reparto de premios ───────────────────────────────────────────────────────
+//
+// Qué porcentaje de lo recaudado por un evento va a premios y cómo se divide
+// entre los puestos. Es CONFIGURACIÓN, no plata: los movimientos que genera son
+// filas normales de `accounting_entries` con rubro "premios en dinero".
+//
+// Se guarda para poder volver y regenerar sin recargar los números a mano, y
+// para saber con qué base se generó la última vez (si después entró más plata,
+// el pool cambió y hay que avisar).
+export const accountingPrizeConfigs = mysqlTable("accounting_prize_configs", {
+    eventType: varchar("event_type", { length: 20 }).notNull(),
+    eventId: varchar("event_id", { length: 36 }).notNull(),
+    // Porcentajes en puntos básicos (5050 = 50,50 %): enteros, para que repartir
+    // no arrastre errores de coma flotante sobre montos en centavos.
+    poolBasisPoints: int("pool_basis_points").notNull().default(0),
+    positions: json("positions").notNull(),
+    baseCents: bigint("base_cents", { mode: "number" }).notNull().default(0),
+    updatedByUserId: varchar("updated_by_user_id", { length: 256 }).notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+    pk: primaryKey({ columns: [table.eventType, table.eventId] }),
+}));
+
+export type AccountingPrizeConfig = InferSelectModel<typeof accountingPrizeConfigs>;

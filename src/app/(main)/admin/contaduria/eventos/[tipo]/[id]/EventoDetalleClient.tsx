@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-    AlertTriangle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Check, ChevronDown, Lock, Plus, Scale, Ticket,
+    AlertTriangle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Check, ChevronDown, Loader2, Lock, Plus, Scale,
+    Ticket, Trophy,
 } from "lucide-react";
 import {
     RUBRO, TIPO_MOVIMIENTO, etiquetaDeRubro, etiquetaDeTipoEvento, formatearFecha, formatearMonto,
@@ -17,13 +18,17 @@ import {
     type Prefill,
 } from "../../../componentes";
 import { crearMovimiento, editarMovimiento, eliminarMovimiento } from "../../../actions";
-import type { DetalleEvento } from "../../actions";
+import PremiosEvento from "../../../PremiosEvento";
+import { obtenerDatosPremios, type DatosPremios, type DetalleEvento } from "../../actions";
 
 export default function EventoDetalleClient({ detalle }: { detalle: DetalleEvento }) {
     const router = useRouter();
     const [pendiente, iniciar] = useTransition();
     const [creando, setCreando] = useState<Prefill | null>(null);
     const [editando, setEditando] = useState<Movimiento | null>(null);
+    // Se pide recién al abrir el reparto: la mayoría de las visitas no lo tocan.
+    const [premios, setPremios] = useState<DatosPremios | null>(null);
+    const [abriendoPremios, setAbriendoPremios] = useState(false);
 
     const evento: EventoRef = { tipo: detalle.tipo, id: detalle.id, nombre: detalle.nombre };
 
@@ -118,6 +123,31 @@ export default function EventoDetalleClient({ detalle }: { detalle: DetalleEvent
                 <BotonAlta tipo={TIPO_MOVIMIENTO.INGRESO} onClick={() => setCreando({ tipo: TIPO_MOVIMIENTO.INGRESO, evento })} />
                 <BotonAlta tipo={TIPO_MOVIMIENTO.GASTO} onClick={() => setCreando({ tipo: TIPO_MOVIMIENTO.GASTO, evento })} />
             </div>
+
+            <button
+                type="button"
+                disabled={abriendoPremios}
+                onClick={async () => {
+                    setAbriendoPremios(true);
+                    setPremios(await obtenerDatosPremios(detalle.tipo, detalle.id));
+                    setAbriendoPremios(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 clip-notch bg-volt/10 border border-volt/40 text-[10px] font-black uppercase tracking-widest text-volt-ink hover:bg-volt/20 transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+            >
+                {abriendoPremios ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trophy className="w-3.5 h-3.5" />}
+                Repartir premios
+            </button>
+
+            {premios && (
+                <PremiosEvento
+                    tipo={detalle.tipo}
+                    id={detalle.id}
+                    ingresosCentavos={premios.ingresosCentavos}
+                    config={premios.config}
+                    onCerrar={() => setPremios(null)}
+                    onGenerado={() => router.refresh()}
+                />
+            )}
 
             {creando && (
                 <ModalFormulario onCerrar={() => setCreando(null)}>

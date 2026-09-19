@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ExternalLink, Loader2, Lock, Plus, Wallet, X } from "lucide-react";
+import { ExternalLink, Loader2, Lock, Plus, Trophy, Wallet, X } from "lucide-react";
 import {
     EVENTO_CAJA_DESACTUALIZADA, RUBRO, TIPO_MOVIMIENTO, etiquetaDeRubro, formatearMonto,
     llevaInscripcionesAutomaticas, rutaDeEvento,
@@ -29,7 +29,11 @@ import {
 } from "@/lib/contaduria";
 import { FilaCompacta, Formulario, ModalFormulario, type Prefill } from "./componentes";
 import { crearMovimiento, editarMovimiento, eliminarMovimiento } from "./actions";
-import { obtenerCajaDeEvento, obtenerDetalleEvento, type CajaDeEvento, type DetalleEvento } from "./eventos/actions";
+import {
+    obtenerCajaDeEvento, obtenerDatosPremios, obtenerDetalleEvento,
+    type CajaDeEvento, type DatosPremios, type DetalleEvento,
+} from "./eventos/actions";
+import PremiosEvento from "./PremiosEvento";
 
 export default function CajaDelEvento({
     tipo, id, nombre,
@@ -132,6 +136,10 @@ function ModalCaja({
     const [creando, setCreando] = useState<Prefill | null>(null);
     const [editando, setEditando] = useState<Movimiento | null>(null);
     const [guardando, setGuardando] = useState(false);
+    // Se pide recién al abrir el reparto: la mayoría de las veces que se
+    // abre la caja no se tocan los premios.
+    const [premios, setPremios] = useState<DatosPremios | null>(null);
+    const [abriendoPremios, setAbriendoPremios] = useState(false);
 
     /** Relee el detalle después de cargar, editar o borrar un movimiento. */
     const cargar = useCallback(async () => {
@@ -238,6 +246,20 @@ function ModalCaja({
                                 <BotonRapido tipo={TIPO_MOVIMIENTO.GASTO} onClick={() => setCreando({ tipo: TIPO_MOVIMIENTO.GASTO, evento })} />
                             </div>
 
+                            <button
+                                type="button"
+                                disabled={abriendoPremios}
+                                onClick={async () => {
+                                    setAbriendoPremios(true);
+                                    setPremios(await obtenerDatosPremios(evento.tipo, evento.id));
+                                    setAbriendoPremios(false);
+                                }}
+                                className="w-full flex items-center justify-center gap-1.5 h-10 rounded-xl bg-volt/10 border border-volt/30 text-[9px] font-black uppercase tracking-widest text-volt-ink hover:bg-volt/20 transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                            >
+                                {abriendoPremios ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trophy className="w-3 h-3" />}
+                                Repartir premios
+                            </button>
+
                             {/* El listado completo, acá adentro: es justamente lo
                                 que antes obligaba a navegar y perder la pantalla. */}
                             {detalle.movimientos.length === 0 ? (
@@ -293,6 +315,17 @@ function ModalCaja({
                         }}
                     />
                 </ModalFormulario>
+            )}
+
+            {premios && (
+                <PremiosEvento
+                    tipo={evento.tipo}
+                    id={evento.id}
+                    ingresosCentavos={premios.ingresosCentavos}
+                    config={premios.config}
+                    onCerrar={() => setPremios(null)}
+                    onGenerado={() => { void cargar(); onCambio(); }}
+                />
             )}
 
             {editando && (
