@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon,
     Search, ChevronDown, MoreVertical, MapPin, Plus, Activity,
-    Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag, BarChart3
+    Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag, BarChart3, Wallet
 } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
@@ -207,6 +207,11 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                     <Link href={`/tournaments/${tournament.id}/edit`}>
                         <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95 group/btn" title="Editar">
                             <Edit className="w-3 h-3" />
+                        </button>
+                    </Link>
+                    <Link href={`/admin/contaduria/eventos/torneo/${tournament.id}`}>
+                        <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95 group/btn" title="Contaduría del torneo">
+                            <Wallet className="w-3 h-3" />
                         </button>
                     </Link>
                     {isFinished && (

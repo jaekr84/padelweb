@@ -26,6 +26,10 @@ export type Movimiento = {
     // (o estar cargados con un nombre genérico) y la caja tiene que poder
     // auditarse sin dudas.
     registradoPor: { id: string; nombre: string; email: string | null };
+    /** Rubro del movimiento. Las filas viejas llegan como "otros". */
+    rubro: Rubro;
+    /** El evento que lo generó, o `null` si es un movimiento general de la caja. */
+    evento: EventoRef | null;
     creadoEn: string;
 };
 
@@ -146,4 +150,171 @@ export function etiquetaDeMes(clave: string): string {
     const [a, m] = clave.split("-");
     const mes = MESES[Number(m) - 1];
     return mes ? `${mes} ${a}` : clave;
+}
+
+// ── Rubros ──────────────────────────────────────────────────────────────────
+//
+// La descripción es libre y sirve para leer un movimiento; el rubro es cerrado
+// y sirve para sumarlos por concepto ("cuánto se pagó en premios este año").
+// Son dos cosas distintas y por eso conviven.
+
+export const RUBRO = {
+    INSCRIPCIONES: "inscripciones",
+    SPONSORS: "sponsors",
+    BAR: "bar",
+    VENTA: "venta",
+    PREMIOS_DINERO: "premios_dinero",
+    PREMIOS_ESPECIE: "premios_especie",
+    CANCHAS: "canchas",
+    INSUMOS: "insumos",
+    PERSONAL: "personal",
+    COMIDA: "comida",
+    DIFUSION: "difusion",
+    // Vale para los dos tipos, y es el default de la columna: los movimientos
+    // cargados antes de que existieran los rubros caen acá sin migrarse.
+    OTROS: "otros",
+} as const;
+
+export type Rubro = (typeof RUBRO)[keyof typeof RUBRO];
+
+const ETIQUETAS_RUBRO: Record<Rubro, string> = {
+    [RUBRO.INSCRIPCIONES]: "Inscripciones",
+    [RUBRO.SPONSORS]: "Sponsors",
+    [RUBRO.BAR]: "Bar / cantina",
+    [RUBRO.VENTA]: "Venta / merchandising",
+    [RUBRO.PREMIOS_DINERO]: "Premios en dinero",
+    [RUBRO.PREMIOS_ESPECIE]: "Premios en especie",
+    [RUBRO.CANCHAS]: "Alquiler de canchas",
+    [RUBRO.INSUMOS]: "Pelotas e insumos",
+    [RUBRO.PERSONAL]: "Arbitraje / personal",
+    [RUBRO.COMIDA]: "Comida y bebida",
+    [RUBRO.DIFUSION]: "Difusión / publicidad",
+    [RUBRO.OTROS]: "Otros",
+};
+
+/** Qué rubros ofrece cada tipo. "Otros" está en los dos. */
+export const RUBROS_POR_TIPO: Record<TipoMovimiento, Rubro[]> = {
+    [TIPO_MOVIMIENTO.INGRESO]: [
+        RUBRO.INSCRIPCIONES, RUBRO.SPONSORS, RUBRO.BAR, RUBRO.VENTA, RUBRO.OTROS,
+    ],
+    [TIPO_MOVIMIENTO.GASTO]: [
+        RUBRO.PREMIOS_DINERO, RUBRO.PREMIOS_ESPECIE, RUBRO.CANCHAS, RUBRO.INSUMOS,
+        RUBRO.PERSONAL, RUBRO.COMIDA, RUBRO.DIFUSION, RUBRO.OTROS,
+    ],
+};
+
+export const esRubro = (v: unknown): v is Rubro =>
+    typeof v === "string" && Object.prototype.hasOwnProperty.call(ETIQUETAS_RUBRO, v);
+
+/** ¿Ese rubro corresponde a ese tipo? Un ingreso no puede ser "premios". */
+export const rubroValido = (tipo: TipoMovimiento, rubro: Rubro) => RUBROS_POR_TIPO[tipo].includes(rubro);
+
+/**
+ * Rubro guardado → etiqueta. Tolera basura (un rubro viejo, un tipo que se
+ * sacó del catálogo) devolviendo "Otros" en vez de romper la pantalla.
+ */
+export const etiquetaDeRubro = (rubro: string) =>
+    esRubro(rubro) ? ETIQUETAS_RUBRO[rubro] : ETIQUETAS_RUBRO[RUBRO.OTROS];
+
+// ── Eventos ─────────────────────────────────────────────────────────────────
+
+export const TIPO_EVENTO = {
+    TORNEO: "torneo",
+    DESAFIO: "desafio",
+    CANCHA_ABIERTA: "cancha_abierta",
+} as const;
+
+export type TipoEvento = (typeof TIPO_EVENTO)[keyof typeof TIPO_EVENTO];
+
+export const TIPOS_EVENTO: TipoEvento[] = [
+    TIPO_EVENTO.TORNEO, TIPO_EVENTO.DESAFIO, TIPO_EVENTO.CANCHA_ABIERTA,
+];
+
+export const esTipoEvento = (v: unknown): v is TipoEvento =>
+    v === TIPO_EVENTO.TORNEO || v === TIPO_EVENTO.DESAFIO || v === TIPO_EVENTO.CANCHA_ABIERTA;
+
+const ETIQUETAS_EVENTO: Record<TipoEvento, string> = {
+    [TIPO_EVENTO.TORNEO]: "Torneo",
+    [TIPO_EVENTO.DESAFIO]: "Desafío",
+    [TIPO_EVENTO.CANCHA_ABIERTA]: "Cancha abierta",
+};
+
+export const etiquetaDeTipoEvento = (tipo: string) =>
+    esTipoEvento(tipo) ? ETIQUETAS_EVENTO[tipo] : "Evento";
+
+/**
+ * El evento al que pertenece un movimiento. `nombre` es el snapshot guardado en
+ * la fila, no el nombre actual del torneo: si el torneo se borró, sigue habiendo
+ * algo que mostrar.
+ */
+export type EventoRef = { tipo: TipoEvento; id: string; nombre: string };
+
+/** Un evento elegible en el selector del formulario. */
+export type OpcionEvento = EventoRef & { fecha: string | null };
+
+export const rutaDeEvento = (tipo: TipoEvento, id: string) =>
+    `/admin/contaduria/eventos/${tipo}/${encodeURIComponent(id)}`;
+
+/**
+ * Resultado de un evento. `resultado` puede ser negativo: un torneo que dejó
+ * plata en la cancha es justamente lo que esta pantalla tiene que mostrar.
+ */
+export type ResumenEvento = EventoRef & {
+    fecha: string | null;
+    ingresos: number;
+    gastos: number;
+    resultado: number;
+    movimientos: number;
+};
+
+/**
+ * Cuánto *debería* haber entrado por inscripciones, según lo que ya sabe el
+ * evento. No es un asiento: es el número que se compara contra lo cargado.
+ *
+ * `base` dice de dónde sale el conteo, y cambia según el evento: los torneos
+ * tienen pagos marcados uno por uno, el desafío sólo tiene inscriptos. Se
+ * muestra en pantalla para que nadie tenga que adivinar el criterio.
+ */
+export type EsperadoInscripciones = {
+    /** Precio unitario en centavos. 0 si el evento es gratis o no tiene fee. */
+    feeCentavos: number;
+    unidades: number;
+    /** `feeCentavos * unidades`. */
+    esperadoCentavos: number;
+    /** Ya cargado en la caja con rubro "inscripciones" para este evento. */
+    cargadoCentavos: number;
+    /** Ej: "24 pagos marcados", "18 inscriptos". */
+    base: string;
+};
+
+// ── Filtros de la pantalla ──────────────────────────────────────────────────
+//
+// Viven acá y no en `actions.ts` porque un archivo "use server" sólo admite
+// exports async, y estos los usan el cliente (para armar la URL) y el servidor
+// (para leerla) por igual.
+
+/** Valor del filtro de evento que pide sólo los movimientos sin evento. */
+export const SIN_EVENTO = "sin-evento";
+
+/** Clave estable de un evento para URLs y selects. */
+export const claveDeEvento = (tipo: TipoEvento, id: string) => `${tipo}:${id}`;
+
+/** "torneo:abc-123" → `{ tipo, id }`. Los ids son UUID, así que no traen ":". */
+export function parsearClaveEvento(clave: string): { tipo: TipoEvento; id: string } | null {
+    const corte = (clave ?? "").indexOf(":");
+    if (corte <= 0) return null;
+    const tipo = clave.slice(0, corte);
+    const id = clave.slice(corte + 1);
+    return esTipoEvento(tipo) && id ? { tipo, id } : null;
+}
+
+/**
+ * Ordena eventos del más nuevo al más viejo. Los que no tienen fecha van al
+ * final: no se puede afirmar que sean recientes.
+ */
+export function porFechaDesc(a: { fecha: string | null }, b: { fecha: string | null }) {
+    if (a.fecha === b.fecha) return 0;
+    if (!a.fecha) return 1;
+    if (!b.fecha) return -1;
+    return a.fecha < b.fecha ? 1 : -1;
 }

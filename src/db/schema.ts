@@ -843,12 +843,32 @@ export const accountingEntries = mysqlTable("accounting_entries", {
     amountCents: bigint("amount_cents", { mode: "number" }).notNull(),
     // Quién lo registró. Se guarda el id y el nombre se resuelve por join.
     createdByUserId: varchar("created_by_user_id", { length: 256 }).notNull(),
+    // ── Vínculo con el evento ────────────────────────────────────────────────
+    //
+    // Nulos = movimiento general de la caja (alquiler, luz, un gasto del club).
+    // Con evento = la misma fila, además, es parte del resultado de ese torneo,
+    // desafío o cancha abierta. No hay tabla aparte a propósito: una sola caja
+    // significa que los totales no pueden divergir de la suma de los eventos.
+    // torneo | desafio | cancha_abierta
+    eventType: varchar("event_type", { length: 20 }),
+    eventId: varchar("event_id", { length: 36 }),
+    // Snapshot del nombre del evento. Si el torneo se borra, el movimiento
+    // sigue diciendo de qué era — mismo criterio que el left join contra
+    // `users` para el autor: la caja no puede perder el sentido de una fila.
+    eventName: varchar("event_name", { length: 256 }),
+    // Rubro del movimiento (inscripciones, sponsors, premios, ...). Es lo que
+    // permite agrupar por concepto, que con la descripción libre no se podía.
+    category: varchar("category", { length: 30 }).notNull().default("otros"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
     // El listado y los totales siempre van por período, del más nuevo al más viejo.
     dateIdx: index("accounting_entries_date_idx").on(table.date),
     createdByIdx: index("accounting_entries_created_by_idx").on(table.createdByUserId),
+    // La pantalla de un evento pide todos sus movimientos; el listado de
+    // eventos los agrupa. Las dos consultas entran por este par.
+    eventIdx: index("accounting_entries_event_idx").on(table.eventType, table.eventId),
+    categoryIdx: index("accounting_entries_category_idx").on(table.category),
 }));
 
 export type AccountingEntry = InferSelectModel<typeof accountingEntries>;

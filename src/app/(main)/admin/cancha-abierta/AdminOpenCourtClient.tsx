@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Search, MapPin, Activity, Trash2, Edit } from "lucide-react";
+import { Plus, Search, MapPin, Activity, Trash2, Edit, Wallet } from "lucide-react";
 import { OpenCourtEvent, Club, OpenCourtRegistration } from "@/db/schema";
 import { deleteOpenCourtEventAction } from "./actions";
 import { toast } from "sonner";
@@ -170,6 +170,11 @@ function EventRow({ event, onDelete }: { event: EventWithDetails; onDelete: (id:
                     <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95" title="Editar">
                         <Edit className="w-3 h-3" />
                     </button>
+                    <Link href={`/admin/contaduria/eventos/cancha_abierta/${event.id}`}>
+                        <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95" title="Contaduría del evento">
+                            <Wallet className="w-3 h-3" />
+                        </button>
+                    </Link>
                     <button
                         onClick={() => onDelete(event.id)}
                         className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-rojo hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95"

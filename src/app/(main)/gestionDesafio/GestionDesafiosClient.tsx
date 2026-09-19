@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
     ArrowDown, ArrowUp, Check, Lock, Pencil, Plus, Settings2, Swords,
-    Trash2, Trophy, Unlock, UserPlus, X,
+    Trash2, Trophy, Unlock, UserPlus, Wallet, X,
 } from "lucide-react";
 import { ESTADO_DESAFIO, ETIQUETA_ESTADO_DESAFIO, type EstadoDesafio } from "@/lib/desafio";
 import {
@@ -419,6 +419,10 @@ function Acciones({ desafio: d, acciones: a }: { desafio: DesafioResumen; accion
                     <Settings2 className="w-3.5 h-3.5" />
                 </Link>
             )}
+
+            <Link href={`/admin/contaduria/eventos/desafio/${d.id}`} className={`${icono} hover:border-celeste/40 hover:text-celeste`} title="Contaduría del desafío">
+                <Wallet className="w-3.5 h-3.5" />
+            </Link>
 
             <button type="button" onClick={a.onEditar} disabled={a.pendiente} className={`${icono} hover:border-celeste/40 hover:text-foreground`} title="Editar">
                 <Pencil className="w-3.5 h-3.5" />
