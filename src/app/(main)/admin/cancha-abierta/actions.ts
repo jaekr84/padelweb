@@ -181,6 +181,63 @@ export async function createOpenCourtEventAction(data: {
     }
 }
 
+/**
+ * Edita los datos del evento. No toca las canchas, el estado ni las
+ * inscripciones: es el mismo formulario del alta, no una reconfiguración.
+ *
+ * `club_id` tampoco se cambia — mudar un evento de club dejaría inscriptos y
+ * permisos del lado equivocado, y no es lo que el botón "editar" promete.
+ */
+export async function updateOpenCourtEventAction(id: string, data: {
+    name: string;
+    date: string;
+    time: string;
+    address: string;
+    city: string;
+    registrationFee: number;
+    totalSlots: number;
+    categories: string[];
+}) {
+    const session = await getSession();
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
+        return { success: false, error: "No autorizado" };
+    }
+    if (!(await verifyEventOwnership(id))) {
+        return { success: false, error: "No tenés permiso sobre este evento" };
+    }
+
+    try {
+        const capitalizar = (texto: string) => texto
+            .split(" ")
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(" ");
+
+        await db.update(openCourtEvents)
+            .set({
+                name: capitalizar(data.name),
+                date: data.date,
+                time: data.time,
+                address: data.address,
+                city: capitalizar(data.city),
+                registrationFee: data.registrationFee,
+                totalSlots: data.totalSlots,
+                categories: data.categories,
+            })
+            .where(eq(openCourtEvents.id, id));
+
+        // Cambiar el precio cambia lo que corresponde cobrar: el asiento de
+        // inscripciones se recalcula con los pagos que ya estaban marcados.
+        await sincronizarInscripciones("cancha_abierta", id, session.userId);
+
+        revalidatePath("/admin/cancha-abierta");
+        revalidatePath(`/admin/cancha-abierta/${id}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating open court event:", error);
+        return { success: false, error: String(error) };
+    }
+}
+
 export async function deleteOpenCourtEventAction(id: string) {
     const session = await getSession();
     if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {

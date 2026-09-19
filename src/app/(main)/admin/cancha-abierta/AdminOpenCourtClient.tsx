@@ -167,9 +167,11 @@ function EventRow({ event, onDelete }: { event: EventWithDetails; onDelete: (id:
                             {isActive ? 'Gestión' : 'Ver'}
                         </button>
                     </Link>
-                    <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95" title="Editar">
-                        <Edit className="w-3 h-3" />
-                    </button>
+                    <Link href={`/admin/cancha-abierta/${event.id}/edit`}>
+                        <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95" title="Editar">
+                            <Edit className="w-3 h-3" />
+                        </button>
+                    </Link>
                     <Link href={`/admin/contaduria/eventos/cancha_abierta/${event.id}`}>
                         <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95" title="Contaduría del evento">
                             <Wallet className="w-3 h-3" />

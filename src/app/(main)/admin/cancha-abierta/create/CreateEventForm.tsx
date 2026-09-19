@@ -8,28 +8,44 @@ import {
     Users, Trophy, ChevronLeft, Save, Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import { createOpenCourtEventAction } from "../actions";
+import { createOpenCourtEventAction, updateOpenCourtEventAction } from "../actions";
 
 const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 7).padStart(2, "0")); // 07–23
 const MINUTES = ["00", "30"];
 
+export interface DatosEvento {
+    name: string;
+    date: string;
+    time: string;
+    address: string;
+    city: string;
+    registrationFee: number | null;
+    totalSlots: number | null;
+    categories: string[];
+}
+
 interface Props {
     categories: any[];
     clubId: string;
+    /** Id del evento que se está editando. Sin esto, el formulario crea. */
+    eventId?: string;
+    /** Valores con los que abre la edición. */
+    initialData?: DatosEvento;
 }
 
-export default function CreateEventForm({ categories, clubId }: Props) {
+export default function CreateEventForm({ categories, clubId, eventId, initialData }: Props) {
     const router = useRouter();
+    const editando = Boolean(eventId);
     const { register, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm({
         defaultValues: {
-            name: "",
-            date: "",
-            time: "",
-            address: "",
-            city: "",
-            registrationFee: "" as any,
-            totalSlots: 16,
-            categories: [] as string[],
+            name: initialData?.name ?? "",
+            date: initialData?.date ?? "",
+            time: initialData?.time ?? "",
+            address: initialData?.address ?? "",
+            city: initialData?.city ?? "",
+            registrationFee: (initialData?.registrationFee ?? "") as any,
+            totalSlots: initialData?.totalSlots ?? 16,
+            categories: (initialData?.categories ?? []) as string[],
         }
     });
 
@@ -39,19 +55,25 @@ export default function CreateEventForm({ categories, clubId }: Props) {
 
     const onSubmit = async (data: any) => {
         try {
-            const res = await createOpenCourtEventAction({
+            const valores = {
                 ...data,
-                clubId,
                 name: data.name.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
-                registrationFee: Number(data.registrationFee),
+                registrationFee: Number(data.registrationFee) || 0,
                 totalSlots: Number(data.totalSlots),
-            });
+            };
+
+            const res = eventId
+                ? await updateOpenCourtEventAction(eventId, valores)
+                : await createOpenCourtEventAction({ ...valores, clubId });
 
             if (res.success) {
-                toast.success("¡Evento creado con éxito!");
+                toast.success(editando ? "Evento actualizado." : "¡Evento creado con éxito!");
                 router.push("/admin/cancha-abierta");
+                // El listado es un server component: sin esto vuelve con los
+                // datos viejos en caché.
+                router.refresh();
             } else {
-                toast.error("Error al crear el evento");
+                toast.error(res.error || (editando ? "Error al actualizar el evento" : "Error al crear el evento"));
             }
         } catch (error) {
             toast.error("Hubo un error inesperado");
@@ -69,7 +91,9 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         </button>
                     </Link>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Nuevo Evento</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">
+                            {editando ? "Editar Evento" : "Nuevo Evento"}
+                        </p>
                         <h1 className="text-xl heading-sport text-foreground leading-none">
                             Configuración de <span className="text-azul-primary">Cancha Abierta</span>
                         </h1>
@@ -264,12 +288,14 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         ) : (
                             <>
                                 <Save className="w-4 h-4" />
-                                <span className="text-[10px]">Crear Evento</span>
+                                <span className="text-[10px]">{editando ? "Guardar Cambios" : "Crear Evento"}</span>
                             </>
                         )}
                     </button>
                     <p className="text-center text-[8px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mt-4">
-                        Panel de gestión dinámica habilitado post-creación.
+                        {editando
+                            ? "Las canchas y los inscriptos se gestionan desde el panel en vivo."
+                            : "Panel de gestión dinámica habilitado post-creación."}
                     </p>
                 </div>
             </form>
