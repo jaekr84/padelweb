@@ -9,8 +9,10 @@ import { and, desc, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 import {
-    MONTO_MAXIMO_CENTAVOS, MOVIMIENTOS_POR_PERIODO, RUBRO, SIN_EVENTO, TIPO_EVENTO, TIPO_MOVIMIENTO,
-    esFechaValida, esRubro, esTipoEvento, esTipoMovimiento, parsearClaveEvento, porFechaDesc, rubroValido,
+    MONTO_MAXIMO_CENTAVOS, MOVIMIENTOS_POR_PERIODO, ORIGEN, RUBRO, SIN_EVENTO, TIPO_EVENTO, TIPO_MOVIMIENTO,
+    esAutomatico, esFechaValida, esOrigen, esRubro, esTipoEvento, esTipoMovimiento, parsearClaveEvento,
+    porFechaDesc,
+    rubroValido,
     type EventoRef, type Movimiento, type OpcionEvento, type Rubro, type TipoEvento, type TipoMovimiento,
     type Totales,
 } from "@/lib/contaduria";
@@ -179,6 +181,7 @@ export async function obtenerMovimientos(filtros: Filtros = {}): Promise<Movimie
             descripcion: accountingEntries.description,
             montoCentavos: accountingEntries.amountCents,
             rubro: accountingEntries.category,
+            origen: accountingEntries.origin,
             eventoTipo: accountingEntries.eventType,
             eventoId: accountingEntries.eventId,
             eventoNombre: accountingEntries.eventName,
@@ -207,6 +210,7 @@ type FilaMovimiento = {
     descripcion: string;
     montoCentavos: number;
     rubro: string;
+    origen: string;
     eventoTipo: string | null;
     eventoId: string | null;
     eventoNombre: string | null;
@@ -225,6 +229,7 @@ function aMovimiento(f: FilaMovimiento): Movimiento {
         descripcion: f.descripcion,
         montoCentavos: Number(f.montoCentavos),
         rubro: esRubro(f.rubro) ? f.rubro : RUBRO.OTROS,
+        origen: esOrigen(f.origen) ? f.origen : ORIGEN.MANUAL,
         // Hace falta el par completo: una fila a medio llenar no es un vínculo.
         evento: esTipoEvento(f.eventoTipo) && f.eventoId
             ? { tipo: f.eventoTipo, id: f.eventoId, nombre: f.eventoNombre || "Evento sin nombre" }
@@ -292,6 +297,7 @@ export async function crearMovimiento(datos: DatosMovimiento): Promise<Resultado
             description: v.descripcion,
             amountCents: v.montoCentavos,
             category: v.rubro,
+            origin: ORIGEN.MANUAL,
             eventType: v.evento?.tipo ?? null,
             eventId: v.evento?.id ?? null,
             eventName: v.evento?.nombre ?? null,
@@ -306,9 +312,31 @@ export async function crearMovimiento(datos: DatosMovimiento): Promise<Resultado
  * Editar no cambia quién lo registró: la fila sigue siendo de quien la cargó,
  * que es justamente lo que se quiere poder auditar.
  */
+/**
+ * El asiento automático de inscripciones lo reescribe el sistema en cada clic
+ * de "pagado", así que editarlo o borrarlo a mano no tendría efecto: el
+ * siguiente clic lo pisaría. Se frena acá y no sólo en la pantalla, porque la
+ * acción se puede llamar igual desde afuera.
+ */
+async function requerirManual(id: string) {
+    const [fila] = await db
+        .select({ origen: accountingEntries.origin })
+        .from(accountingEntries)
+        .where(eq(accountingEntries.id, id))
+        .limit(1);
+
+    if (!fila) throw new ErrorContaduria("El movimiento ya no existe.");
+    if (esAutomatico(fila.origen)) {
+        throw new ErrorContaduria(
+            "Ese movimiento lo mantiene el sistema con los pagos marcados. Para ajustarlo, cargá un movimiento aparte."
+        );
+    }
+}
+
 export async function editarMovimiento(id: string, datos: DatosMovimiento): Promise<Resultado> {
     return ejecutar("editarMovimiento", async () => {
         await requerirAdmin();
+        await requerirManual(id);
         const v = validar(datos);
 
         const resultado = await db
@@ -336,6 +364,7 @@ export async function editarMovimiento(id: string, datos: DatosMovimiento): Prom
 export async function eliminarMovimiento(id: string): Promise<Resultado> {
     return ejecutar("eliminarMovimiento", async () => {
         await requerirAdmin();
+        await requerirManual(id);
 
         const resultado = await db.delete(accountingEntries).where(eq(accountingEntries.id, id));
         if (filasAfectadas(resultado) === 0) throw new ErrorContaduria("El movimiento ya no existe.");

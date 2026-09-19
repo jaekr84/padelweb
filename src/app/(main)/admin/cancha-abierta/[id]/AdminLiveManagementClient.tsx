@@ -32,6 +32,7 @@ import {
 } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
+import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
 import {
     selectOcCandidates, pickBestOcCombo,
     type OcMode, type OcCompletedMatch
@@ -605,6 +606,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                     </div>
                 </div>
             </div>
+
+            {/* Sólo se dibuja para admin/superadmin: la acción que lo
+                alimenta no le devuelve datos a un usuario `club`. */}
+            <CajaDelEvento tipo="cancha_abierta" id={event.id} nombre={event.name} />
 
             {/* Navigation Tabs */}
             <div className="flex gap-1 bg-surface p-1 rounded-xl w-fit border border-hairline">

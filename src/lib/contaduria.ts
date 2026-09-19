@@ -28,6 +28,8 @@ export type Movimiento = {
     registradoPor: { id: string; nombre: string; email: string | null };
     /** Rubro del movimiento. Las filas viejas llegan como "otros". */
     rubro: Rubro;
+    /** Quién lo generó. Los automáticos no se editan ni se borran a mano. */
+    origen: Origen;
     /** El evento que lo generó, o `null` si es un movimiento general de la caja. */
     evento: EventoRef | null;
     creadoEn: string;
@@ -318,3 +320,33 @@ export function porFechaDesc(a: { fecha: string | null }, b: { fecha: string | n
     if (!b.fecha) return -1;
     return a.fecha < b.fecha ? 1 : -1;
 }
+
+// ── Origen del movimiento ───────────────────────────────────────────────────
+
+export const ORIGEN = {
+    /** Lo cargó una persona. Se edita y se borra como siempre. */
+    MANUAL: "manual",
+    /**
+     * Lo mantiene el sistema a partir de los pagos marcados del evento. Se
+     * reescribe en cada clic de "pagado", así que editarlo a mano no tendría
+     * efecto: el siguiente clic lo pisaría. Los ajustes (descuentos,
+     * cortesías, el que pagó de más) van como movimientos manuales aparte.
+     */
+    AUTO_INSCRIPCIONES: "auto_inscripciones",
+} as const;
+
+export type Origen = (typeof ORIGEN)[keyof typeof ORIGEN];
+
+export const esOrigen = (v: unknown): v is Origen =>
+    v === ORIGEN.MANUAL || v === ORIGEN.AUTO_INSCRIPCIONES;
+
+/** Un movimiento del sistema no se toca a mano. */
+export const esAutomatico = (origen: string) => origen === ORIGEN.AUTO_INSCRIPCIONES;
+
+/**
+ * Eventos cuyos pagos se marcan jugador por jugador y por lo tanto pueden
+ * mantener el asiento de inscripciones solo. El desafío no tiene marca de pago
+ * individual, así que ahí la recaudación se sigue cargando a mano.
+ */
+export const llevaInscripcionesAutomaticas = (tipo: TipoEvento) =>
+    tipo === TIPO_EVENTO.TORNEO || tipo === TIPO_EVENTO.CANCHA_ABIERTA;

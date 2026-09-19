@@ -5,6 +5,7 @@ import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrati
 import { eq, sql, inArray, and, not, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth-server";
+import { sincronizarInscripciones } from "@/lib/contaduria-server";
 
 type PlayerLike = { id: string; name: string; clubId?: string | null };
 type BracketSlot = PlayerLike | "BYE" | null;
@@ -84,7 +85,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         console.log(`\n\n>>> [SERVER] SAVE TOURNAMENT FIXTURE CALLED <<<`);
         console.log(`>>> ID: ${input.tournamentId} | Phase: ${input.phase} | Matches: ${input.matches?.length || 0} <<<\n`);
         
-        return await db.transaction(async (tx) => {
+        const resultadoGuardado = await db.transaction(async (tx) => {
             const [prevT] = await tx
                 .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId, updatedAt: tournaments.updatedAt })
                 .from(tournaments)
@@ -288,6 +289,16 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
 
             return { ok: true, newStatus, newUpdatedAt: saveTime.toISOString() };
         });
+
+        // Fuera de la transacción a propósito: el fixture ya está guardado y la
+        // caja es su reflejo, no parte del mismo hecho. Si fallara acá, el
+        // torneo igual quedó bien; el próximo clic de pagado la reacomoda.
+        if (resultadoGuardado.ok && input.paidPlayerIds) {
+            const session = await getSession();
+            await sincronizarInscripciones("torneo", input.tournamentId, session?.userId ?? "");
+        }
+
+        return resultadoGuardado;
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
         return { ok: false, error: String(err) };
@@ -1266,6 +1277,14 @@ export async function updateTournamentMetadata(input: {
                 updatedAt: sql`updated_at`,
             })
             .where(eq(tournaments.id, input.tournamentId));
+
+        // El asiento de inscripciones sigue a los pagos marcados. Se recalcula
+        // (no se acumula) porque acá llega la lista entera de vuelta, no el
+        // hecho "fulano pagó": sumar duplicaría y desmarcar no restaría nada.
+        // No lanza: el pago ya se guardó y no puede fallar por la caja.
+        if (input.paidPlayerIds) {
+            await sincronizarInscripciones("torneo", input.tournamentId, session.userId);
+        }
 
         revalidatePath(`/tournaments/${input.tournamentId}/manage`);
         return { ok: true };

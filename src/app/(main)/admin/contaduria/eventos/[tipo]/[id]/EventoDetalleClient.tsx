@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-    AlertTriangle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Check, Plus, Scale, Ticket,
+    AlertTriangle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Check, ChevronDown, Lock, Plus, Scale, Ticket,
 } from "lucide-react";
 import {
     RUBRO, TIPO_MOVIMIENTO, etiquetaDeRubro, etiquetaDeTipoEvento, formatearFecha, formatearMonto,
+    llevaInscripcionesAutomaticas,
     type EventoRef, type Movimiento, type TipoMovimiento,
 } from "@/lib/contaduria";
 import {
@@ -101,6 +102,8 @@ export default function EventoDetalleClient({ detalle }: { detalle: DetalleEvent
             {detalle.inscripciones && (
                 <PanelInscripciones
                     datos={detalle.inscripciones}
+                    automatico={llevaInscripcionesAutomaticas(detalle.tipo)}
+                    pagadores={detalle.pagadores}
                     onCargar={(montoCentavos) => setCreando({
                         tipo: TIPO_MOVIMIENTO.INGRESO,
                         rubro: RUBRO.INSCRIPCIONES,
@@ -185,18 +188,59 @@ export default function EventoDetalleClient({ detalle }: { detalle: DetalleEvent
 /**
  * Esperado vs cargado por inscripciones.
  *
- * El esperado no es un asiento: es el número contra el que se compara lo que
- * está en la caja. El botón sugiere la diferencia y la deja editable, porque
- * siempre hay una cortesía, un descuento o alguien que pagó de más.
+ * En torneos y cancha abierta el asiento lo mantiene el sistema: acá sólo se
+ * explica de dónde sale el monto y quiénes están detrás. En el desafío, que no
+ * marca pagos jugador por jugador, sigue habiendo un botón que sugiere la
+ * diferencia y la deja editable.
  */
 function PanelInscripciones({
-    datos, onCargar,
+    datos, automatico, pagadores, onCargar,
 }: {
     datos: NonNullable<DetalleEvento["inscripciones"]>;
+    automatico: boolean;
+    pagadores: DetalleEvento["pagadores"];
     onCargar: (montoCentavos: number) => void;
 }) {
     const falta = datos.esperadoCentavos - datos.cargadoCentavos;
     const completo = falta <= 0;
+
+    if (automatico) {
+        return (
+            <div className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/20 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-celeste" />
+                    <span className="label-tech text-[8px] text-celeste">Inscripciones</span>
+                    <span className="ml-auto inline-flex items-center gap-1 px-1.5 h-5 rounded-md bg-celeste/10 border border-celeste/30 text-[9px] font-black uppercase tracking-wider text-celeste">
+                        <Lock className="w-2.5 h-2.5" />
+                        Automático
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center">
+                    <Dato rotulo="En la caja" valor={formatearMonto(datos.cargadoCentavos)} tono="text-emerald-400" />
+                    <Dato rotulo="Precio" valor={formatearMonto(datos.feeCentavos)} />
+                </div>
+
+                <p className="text-[10px] text-subtle text-center">
+                    {datos.base}. Se actualiza sola cada vez que marcás o desmarcás un pago.
+                </p>
+
+                {/* El "de dónde viene": los jugadores detrás del monto. Es el
+                    estado de ahora, no un historial — si desmarcás a alguien,
+                    deja de estar acá igual que deja de estar en el total. */}
+                {pagadores.length > 0 && <ListaPagadores pagadores={pagadores} />}
+
+                {/* Si difiere de lo esperado es porque alguien cargó además un
+                    movimiento manual de inscripciones. No es un error, pero se
+                    avisa para que no parezca uno. */}
+                {datos.cargadoCentavos !== datos.esperadoCentavos && (
+                    <p className="text-[10px] text-amber-400 text-center">
+                        Hay {formatearMonto(Math.abs(falta))} cargados a mano además del automático.
+                    </p>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/20 p-4 space-y-3">
@@ -279,5 +323,34 @@ function BotonAlta({ tipo, onClick }: { tipo: TipoMovimiento; onClick: () => voi
             <Plus className="w-3.5 h-3.5" />
             {ingreso ? "Registrar ingreso" : "Registrar gasto"}
         </button>
+    );
+}
+
+/** Quiénes pagaron. Plegada por defecto: en un torneo grande son 40 nombres. */
+function ListaPagadores({ pagadores }: { pagadores: DetalleEvento["pagadores"] }) {
+    const [abierta, setAbierta] = useState(false);
+
+    return (
+        <div className="rounded-xl bg-muted border border-hairline overflow-hidden">
+            <button
+                type="button"
+                onClick={() => setAbierta((v) => !v)}
+                aria-expanded={abierta}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-card transition-colors cursor-pointer"
+            >
+                <span className="label-tech text-[8px] text-subtle">
+                    {pagadores.length} {pagadores.length === 1 ? "jugador pagó" : "jugadores pagaron"}
+                </span>
+                <ChevronDown className={`ml-auto w-3.5 h-3.5 text-subtle transition-transform ${abierta ? "rotate-180" : ""}`} />
+            </button>
+
+            {abierta && (
+                <ul className="px-3 pb-2.5 space-y-0.5 border-t border-hairline pt-2">
+                    {pagadores.map((p) => (
+                        <li key={p.id} className="text-[11px] text-muted-foreground truncate">{p.nombre}</li>
+                    ))}
+                </ul>
+            )}
+        </div>
     );
 }

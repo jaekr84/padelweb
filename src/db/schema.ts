@@ -859,6 +859,10 @@ export const accountingEntries = mysqlTable("accounting_entries", {
     // Rubro del movimiento (inscripciones, sponsors, premios, ...). Es lo que
     // permite agrupar por concepto, que con la descripción libre no se podía.
     category: varchar("category", { length: 30 }).notNull().default("otros"),
+    // manual | auto_inscripciones. El automático lo reescribe el sistema cada
+    // vez que cambia la lista de pagos del evento, así que no se edita a mano:
+    // el proximo clic de "pagado" pisaría el cambio.
+    origin: varchar("origin", { length: 20 }).notNull().default("manual"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -869,6 +873,8 @@ export const accountingEntries = mysqlTable("accounting_entries", {
     // eventos los agrupa. Las dos consultas entran por este par.
     eventIdx: index("accounting_entries_event_idx").on(table.eventType, table.eventId),
     categoryIdx: index("accounting_entries_category_idx").on(table.category),
+    // La sincronización busca por acá el asiento automático de un evento.
+    eventOriginIdx: index("accounting_entries_event_origin_idx").on(table.eventType, table.eventId, table.origin),
 }));
 
 export type AccountingEntry = InferSelectModel<typeof accountingEntries>;

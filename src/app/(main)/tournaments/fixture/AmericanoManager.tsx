@@ -17,6 +17,7 @@ import {
     Player, Group, Match, BracketSlot, BracketMatch, Standing 
 } from "./components/americano/types";
 import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
+import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
 import { isTeamChecked, toggleCheckKey, remapCheckKeys, removeCheckKeys } from "./components/americano/attendance-utils";
 import { AmericanoAttendance } from "./components/americano/AmericanoAttendance";
 import { AmericanoCourtGrid } from "./components/americano/AmericanoCourtGrid";
@@ -1231,6 +1232,12 @@ export default function AmericanoManager({
                     <p className="mt-0.5 text-[6px] font-black uppercase tracking-[0.4em] text-subtle">
                         SISTEMA DE GESTIÓN TÁCTICA • AMERICANO
                     </p>
+                </div>
+
+                {/* Sólo se dibuja para admin/superadmin: la acción que lo
+                    alimenta no le devuelve datos a un club ni al dueño. */}
+                <div className="mb-3">
+                    <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
                 </div>
 
                 <AnimatePresence mode="wait">

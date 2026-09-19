@@ -15,6 +15,7 @@ import {
     Users, X, XCircle,
 } from "lucide-react";
 import { ESTADO_DESAFIO, ESTADO_PARTIDO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, LADO, generarCruces, claveCruce, type Lado, type SetPartido } from "@/lib/desafio";
+import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
 import type { DesafioResumen } from "../../desafio/actions/desafios";
 import type { CanchaResumen } from "../../desafio/actions/canchas";
 import type { CandidatoInscripcion, InscriptoResumen } from "../../desafio/actions/inscripciones";
@@ -115,6 +116,8 @@ export default function PanelClient(p: Props) {
                         </button>
                     )}
                 </header>
+
+                <CajaDelEvento tipo="desafio" id={p.desafio.id} nombre={p.desafio.nombre} />
 
                 <FilaCanchas
                     desafioId={p.desafio.id}

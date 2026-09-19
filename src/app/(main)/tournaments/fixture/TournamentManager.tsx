@@ -4,6 +4,7 @@ import { Trophy, Swords, Plus, Minus, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { TournamentNavBar } from "./components/tournament/TournamentNavBar";
+import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
 import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
 import { TournamentDashboard } from "./components/tournament/TournamentDashboard";
 import { TournamentGroupsView } from "./components/tournament/TournamentGroupsView";
@@ -181,6 +182,12 @@ export default function TournamentManager(props: TournamentManagerProps) {
                 />
 
                 <div className="w-full px-3 md:px-6 lg:px-10 py-3 pb-16">
+                    {/* Sólo se dibuja para admin/superadmin: la acción que lo
+                        alimenta no le devuelve datos a un club ni al dueño. */}
+                    <div className="mb-4">
+                        <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
+                    </div>
+
                     <AnimatePresence mode="wait">
                         {step === "setup" && (
                             <motion.div

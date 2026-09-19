@@ -9,12 +9,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-    ArrowDownLeft, ArrowUpRight, Loader2, Pencil, Trash2, Trophy, Wallet, X,
+    ArrowDownLeft, ArrowUpRight, Loader2, Lock, Pencil, Trash2, Trophy, Wallet, X,
     type LucideIcon,
 } from "lucide-react";
 import {
-    RUBROS_POR_TIPO, TIPO_MOVIMIENTO, etiquetaDeRubro, etiquetaDeTipoEvento, formatearFecha, formatearMonto,
-    formatearMontoTipeado, hoyISO, parsearMontoACentavos, rubroValido, rutaDeEvento,
+    RUBROS_POR_TIPO, TIPO_MOVIMIENTO, esAutomatico, etiquetaDeRubro, etiquetaDeTipoEvento, formatearFecha,
+    formatearMonto, formatearMontoTipeado, hoyISO, parsearMontoACentavos, rubroValido, rutaDeEvento,
     type EventoRef, type Movimiento, type OpcionEvento, type Rubro, type TipoMovimiento,
 } from "@/lib/contaduria";
 import type { DatosMovimiento } from "./actions";
@@ -81,6 +81,22 @@ export function Chip({ tipo }: { tipo: TipoMovimiento }) {
     );
 }
 
+/**
+ * Marca el asiento que mantiene el sistema. Es información, no decoración: ese
+ * movimiento no se edita ni se borra, y quien lo ve tiene que saber por qué.
+ */
+export function ChipAuto() {
+    return (
+        <span
+            title="Lo mantiene el sistema con los pagos marcados del evento"
+            className="inline-flex items-center gap-1 px-1.5 h-5 rounded-md bg-celeste/10 border border-celeste/30 text-[9px] font-black uppercase tracking-wider text-celeste whitespace-nowrap"
+        >
+            <Lock className="w-2.5 h-2.5" />
+            Auto
+        </span>
+    );
+}
+
 export function ChipRubro({ rubro }: { rubro: Rubro }) {
     return (
         <span className="inline-flex items-center px-1.5 h-5 rounded-md bg-muted border border-hairline text-[9px] font-black uppercase tracking-wider text-subtle whitespace-nowrap">
@@ -143,7 +159,10 @@ export function Tabla({
                                 <div className="text-[12px] font-bold text-foreground truncate" title={m.descripcion}>
                                     {m.descripcion}
                                 </div>
-                                <div className="mt-0.5"><ChipRubro rubro={m.rubro} /></div>
+                                <div className="mt-0.5 flex items-center gap-1">
+                                    <ChipRubro rubro={m.rubro} />
+                                    {esAutomatico(m.origen) && <ChipAuto />}
+                                </div>
                             </td>
                             {mostrarEvento && (
                                 <td className="py-2 px-2 max-w-0">
@@ -163,7 +182,12 @@ export function Tabla({
                                 {signoDe(m.tipo)}{formatearMonto(m.montoCentavos)}
                             </td>
                             <td className="py-2 pr-4 pl-2">
-                                <Acciones pendiente={pendiente} onEditar={() => onEditar(m)} onEliminar={() => onEliminar(m)} />
+                                <Acciones
+                                    pendiente={pendiente}
+                                    automatico={esAutomatico(m.origen)}
+                                    onEditar={() => onEditar(m)}
+                                    onEliminar={() => onEliminar(m)}
+                                />
                             </td>
                         </tr>
                     ))}
@@ -200,23 +224,46 @@ export function FilaCompacta({
                 <div className="min-w-0"><ChipEvento evento={m.evento} /></div>
             )}
             <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                     <Chip tipo={m.tipo} />
                     <ChipRubro rubro={m.rubro} />
+                    {esAutomatico(m.origen) && <ChipAuto />}
                 </div>
-                <Acciones pendiente={pendiente} onEditar={onEditar} onEliminar={onEliminar} />
+                <Acciones
+                    pendiente={pendiente}
+                    automatico={esAutomatico(m.origen)}
+                    onEditar={onEditar}
+                    onEliminar={onEliminar}
+                />
             </div>
         </div>
     );
 }
 
 export function Acciones({
-    pendiente, onEditar, onEliminar,
+    pendiente, automatico = false, onEditar, onEliminar,
 }: {
     pendiente: boolean;
+    /** El asiento del sistema no se edita: el próximo pago lo reescribiría. */
+    automatico?: boolean;
     onEditar: () => void;
     onEliminar: () => void;
 }) {
+    // Se muestra el candado en vez de esconder todo: un renglón sin acciones
+    // parecería un error, y así queda claro que es deliberado.
+    if (automatico) {
+        return (
+            <div
+                className="flex items-center justify-end"
+                title="Lo mantiene el sistema con los pagos marcados. Para ajustarlo, cargá un movimiento aparte."
+            >
+                <span className="w-8 h-8 rounded-lg bg-muted border border-hairline flex items-center justify-center text-subtle">
+                    <Lock className="w-3.5 h-3.5" />
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center justify-end gap-1.5">
             <button

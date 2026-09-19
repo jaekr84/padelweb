@@ -12,6 +12,7 @@ import {
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
+import { sincronizarInscripciones } from "@/lib/contaduria-server";
 import { revalidatePath } from "next/cache";
 
 import { initializeOpenCourtTables } from "./init-db";
@@ -310,6 +311,8 @@ export async function removeRegistrationAction(registrationId: string) {
     if (!reg || !(await verifyEventOwnership(reg.eventId))) return { success: false, error: "No autorizado" };
     try {
         await db.delete(openCourtRegistrations).where(eq(openCourtRegistrations.id, registrationId));
+        // Si el que se borró estaba pagado, el total baja.
+        await sincronizarInscripciones("cancha_abierta", reg.eventId, (await getSession())?.userId ?? "");
         revalidatePath(`/admin/cancha-abierta/${reg.eventId}`);
         return { success: true };
     } catch (error) {
@@ -342,6 +345,8 @@ export async function togglePaymentStatusAction(registrationId: string, hasPaid:
         await db.update(openCourtRegistrations)
             .set({ hasPaid })
             .where(eq(openCourtRegistrations.id, registrationId));
+        // La caja sigue a los pagos: se recalcula el asiento del evento.
+        await sincronizarInscripciones("cancha_abierta", reg.eventId, (await getSession())?.userId ?? "");
         revalidatePath(`/admin/cancha-abierta/${reg.eventId}`);
         return { success: true };
     } catch (error) {
@@ -355,6 +360,7 @@ export async function bulkMarkAllAsPaidAction(eventId: string) {
         await db.update(openCourtRegistrations)
             .set({ hasPaid: true })
             .where(eq(openCourtRegistrations.eventId, eventId));
+        await sincronizarInscripciones("cancha_abierta", eventId, (await getSession())?.userId ?? "");
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
         return { success: true };
     } catch (error) {
@@ -513,6 +519,7 @@ export async function leaveOpenCourtEventAction(eventId: string) {
         if (existing[0].status === "playing") return { success: false, error: "No podés salir mientras estás jugando un partido" };
 
         await db.delete(openCourtRegistrations).where(eq(openCourtRegistrations.id, existing[0].id));
+        await sincronizarInscripciones("cancha_abierta", eventId, session.userId);
 
         revalidatePath(`/cancha-abierta/${eventId}`);
         revalidatePath("/cancha-abierta");

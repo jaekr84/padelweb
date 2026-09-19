@@ -8,17 +8,15 @@
 // misma fila en la misma tabla, sólo que con el evento adentro.
 
 import { db } from "@/db";
-import {
-    accountingEntries, challengeRegistrations, challenges, openCourtEvents,
-    openCourtRegistrations, tournaments,
-} from "@/db/schema";
-import { and, count, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
+import { accountingEntries } from "@/db/schema";
+import { and, count, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import {
-    RUBRO, TIPO_EVENTO, TIPO_MOVIMIENTO, claveDeEvento, esRubro, esTipoEvento, porFechaDesc,
+    RUBRO, TIPO_MOVIMIENTO, claveDeEvento, esRubro, esTipoEvento, porFechaDesc,
     type EsperadoInscripciones, type Movimiento, type ResumenEvento, type Rubro, type TipoEvento,
     type TipoMovimiento, type Totales,
 } from "@/lib/contaduria";
+import { leerEvento, obtenerPagadores, type Pagador } from "@/lib/contaduria-server";
 import { obtenerMovimientos, obtenerOpcionesDeEvento, obtenerTotales } from "../actions";
 
 async function esAdmin() {
@@ -129,95 +127,12 @@ export type DetalleEvento = {
     desglose: DesgloseRubro[];
     /** `null` si el evento no existe o no tiene precio de inscripción. */
     inscripciones: EsperadoInscripciones | null;
+    /**
+     * Quiénes están marcados como pagados ahora mismo: el detalle detrás del
+     * monto del asiento automático. Vacío en desafío, que no marca pagos.
+     */
+    pagadores: Pagador[];
 };
-
-/** "2026-08-31T00:00" → "2026-08-31". Cualquier otra cosa → null. */
-function soloFecha(valor: string | null | undefined): string | null {
-    const recortado = (valor ?? "").slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(recortado) ? recortado : null;
-}
-
-type DatosEvento = {
-    nombre: string;
-    fecha: string | null;
-    feeCentavos: number;
-    unidades: number;
-    /** Ej: "24 pagos marcados". Se muestra para que el criterio no se adivine. */
-    base: string;
-};
-
-/**
- * Datos del evento en su propia tabla. Devuelve `null` si ya no está.
- *
- * `registration_fee` está en PESOS en las tres tablas (así se carga y así se
- * muestra en el resto de la app); la contaduría trabaja en centavos, y la
- * conversión se hace acá, en el único lugar donde se cruzan los dos mundos.
- */
-async function leerEvento(tipo: TipoEvento, id: string): Promise<DatosEvento | null> {
-    if (tipo === TIPO_EVENTO.TORNEO) {
-        const [t] = await db
-            .select({
-                nombre: tournaments.name,
-                fecha: tournaments.startDate,
-                fee: tournaments.registrationFee,
-                pagos: tournaments.paidPlayerIds,
-            })
-            .from(tournaments).where(eq(tournaments.id, id)).limit(1);
-        if (!t) return null;
-
-        // `paid_player_ids` es un JSON de ids de jugador. Se cuenta por Set
-        // porque la lista se reescribe entera en cada guardado del fixture y
-        // un id repetido cobraría dos veces.
-        const pagos = Array.isArray(t.pagos) ? new Set(t.pagos as unknown[]).size : 0;
-        return {
-            nombre: t.nombre,
-            fecha: soloFecha(t.fecha),
-            feeCentavos: (t.fee ?? 0) * 100,
-            unidades: pagos,
-            base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
-        };
-    }
-
-    if (tipo === TIPO_EVENTO.DESAFIO) {
-        const [d] = await db
-            .select({ nombre: challenges.name, fecha: challenges.startDate, fee: challenges.registrationFee })
-            .from(challenges).where(eq(challenges.id, id)).limit(1);
-        if (!d) return null;
-
-        // El desafío no marca pagos uno por uno: lo más cerca que hay del
-        // esperado son los inscriptos que no se dieron de baja.
-        const [c] = await db
-            .select({ cantidad: count() })
-            .from(challengeRegistrations)
-            .where(and(eq(challengeRegistrations.challengeId, id), ne(challengeRegistrations.status, "baja")));
-        const inscriptos = Number(c?.cantidad ?? 0);
-        return {
-            nombre: d.nombre,
-            fecha: soloFecha(d.fecha),
-            feeCentavos: (d.fee ?? 0) * 100,
-            unidades: inscriptos,
-            base: inscriptos + (inscriptos === 1 ? " inscripto" : " inscriptos"),
-        };
-    }
-
-    const [e] = await db
-        .select({ nombre: openCourtEvents.name, fecha: openCourtEvents.date, fee: openCourtEvents.registrationFee })
-        .from(openCourtEvents).where(eq(openCourtEvents.id, id)).limit(1);
-    if (!e) return null;
-
-    const [c] = await db
-        .select({ cantidad: count() })
-        .from(openCourtRegistrations)
-        .where(and(eq(openCourtRegistrations.eventId, id), eq(openCourtRegistrations.hasPaid, true)));
-    const pagos = Number(c?.cantidad ?? 0);
-    return {
-        nombre: e.nombre,
-        fecha: soloFecha(e.fecha),
-        feeCentavos: (e.fee ?? 0) * 100,
-        unidades: pagos,
-        base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
-    };
-}
 
 /** Lo ya cargado en la caja con rubro "inscripciones" para este evento. */
 async function cargadoEnInscripciones(tipo: TipoEvento, id: string): Promise<number> {
@@ -262,12 +177,13 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
     // general: así el mapeo de filas es uno solo y no se puede desincronizar.
     const filtros = { evento: claveDeEvento(tipo, id) };
 
-    const [evento, movimientos, totales, cargado, desglose] = await Promise.all([
+    const [evento, movimientos, totales, cargado, desglose, pagadores] = await Promise.all([
         leerEvento(tipo, id),
         obtenerMovimientos(filtros),
         obtenerTotales(filtros),
         cargadoEnInscripciones(tipo, id),
         desglosePorRubro(tipo, id),
+        obtenerPagadores(tipo, id),
     ]);
 
     // Evento borrado: queda lo que diga la caja. Si tampoco hay movimientos no
@@ -281,6 +197,7 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
             existe: false,
             totales, movimientos, desglose,
             inscripciones: null,
+            pagadores: [],
         };
     }
 
@@ -292,6 +209,7 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
         totales,
         movimientos,
         desglose,
+        pagadores,
         inscripciones: evento.feeCentavos > 0
             ? {
                 feeCentavos: evento.feeCentavos,
@@ -302,4 +220,66 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
             }
             : null,
     };
+}
+
+// ── Panel embebido en las pantallas de gestión ──────────────────────────────
+
+/** Lo que muestra el panel plegable. Sin la lista de movimientos: sólo el resumen. */
+export type CajaDeEvento = {
+    nombre: string;
+    totales: Totales;
+    movimientos: number;
+    inscripciones: EsperadoInscripciones | null;
+};
+
+/**
+ * Resumen de la caja de un evento para el panel de su pantalla de gestión.
+ *
+ * Devuelve `null` cuando quien mira no es admin, y ese es el único control de
+ * acceso que hace falta: a las pantallas de torneo y cancha abierta también
+ * entran usuarios `club` y dueños de torneo, que no tienen acceso a la caja.
+ * Con el gate acá, el panel no necesita saber nada de roles — si no le llegan
+ * datos, no se dibuja.
+ */
+export async function obtenerCajaDeEvento(tipoCrudo: string, id: string): Promise<CajaDeEvento | null> {
+    if (!(await esAdmin())) return null;
+    if (!esTipoEvento(tipoCrudo) || !id) return null;
+    const tipo = tipoCrudo;
+
+    const [evento, totales, cantidad, cargado] = await Promise.all([
+        leerEvento(tipo, id),
+        obtenerTotales({ evento: claveDeEvento(tipo, id) }),
+        contarMovimientos(tipo, id),
+        cargadoEnInscripciones(tipo, id),
+    ]);
+
+    // El evento ya no está en su tabla: se sigue mostrando lo que haya en la
+    // caja, sin el esperado (no hay contra qué calcularlo).
+    if (!evento) {
+        if (cantidad === 0) return null;
+        return { nombre: "Evento eliminado", totales, movimientos: cantidad, inscripciones: null };
+    }
+
+    return {
+        nombre: evento.nombre || "Evento sin nombre",
+        totales,
+        movimientos: cantidad,
+        inscripciones: evento.feeCentavos > 0
+            ? {
+                feeCentavos: evento.feeCentavos,
+                unidades: evento.unidades,
+                esperadoCentavos: evento.feeCentavos * evento.unidades,
+                cargadoCentavos: cargado,
+                base: evento.base,
+            }
+            : null,
+    };
+}
+
+async function contarMovimientos(tipo: TipoEvento, id: string): Promise<number> {
+    const [fila] = await db
+        .select({ cantidad: count() })
+        .from(accountingEntries)
+        .where(and(eq(accountingEntries.eventType, tipo), eq(accountingEntries.eventId, id)));
+    return Number(fila?.cantidad ?? 0);
 }
