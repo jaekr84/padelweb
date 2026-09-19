@@ -350,12 +350,13 @@ export const esOrigen = (v: unknown): v is Origen =>
 export const esAutomatico = (origen: string) => origen === ORIGEN.AUTO_INSCRIPCIONES;
 
 /**
- * Eventos cuyos pagos se marcan jugador por jugador y por lo tanto pueden
- * mantener el asiento de inscripciones solo. El desafío no tiene marca de pago
- * individual, así que ahí la recaudación se sigue cargando a mano.
+ * Eventos cuyos pagos se marcan jugador por jugador y por lo tanto mantienen el
+ * asiento de inscripciones solos. Los tres lo hacen: los torneos por
+ * `paid_player_ids`, la cancha abierta y el desafío por el `has_paid` de su
+ * inscripción. Se deja la función (y no una constante) porque es el lugar donde
+ * habría que volver si algún evento nuevo no marcara pagos por jugador.
  */
-export const llevaInscripcionesAutomaticas = (tipo: TipoEvento) =>
-    tipo === TIPO_EVENTO.TORNEO || tipo === TIPO_EVENTO.CANCHA_ABIERTA;
+export const llevaInscripcionesAutomaticas = (_tipo: TipoEvento) => true;
 
 // ── Aviso de caja desactualizada ────────────────────────────────────────────
 

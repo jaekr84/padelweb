@@ -11,8 +11,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
     AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
-    ListOrdered, Lock, Play, Plus, Search, Sparkles, Swords, Trash2, Trophy, UserPlus,
-    Users, X, XCircle,
+    DollarSign, ListOrdered, Lock, Play, Plus, Search, Sparkles, Swords, Trash2, Trophy, UserCheck,
+    UserPlus, Users, X, XCircle,
 } from "lucide-react";
 import { ESTADO_DESAFIO, ESTADO_PARTIDO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, LADO, generarCruces, claveCruce, type Lado, type SetPartido } from "@/lib/desafio";
 import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
@@ -24,7 +24,9 @@ import type { PartidoResumen } from "../../desafio/actions/partidos";
 import type { EntradaCola } from "../../desafio/actions/cola";
 import type { FilaRankingUI } from "../../desafio/actions/ranking";
 import { agregarCancha, cambiarEstadoCancha, eliminarCancha } from "../../desafio/actions/canchas";
-import { inscribirJugador, darDeBajaJugador } from "../../desafio/actions/inscripciones";
+import {
+    darDeBajaJugador, inscribirJugador, marcarPago, marcarPresente, marcarTodos,
+} from "../../desafio/actions/inscripciones";
 import { armarPareja, desarmarPareja } from "../../desafio/actions/parejas";
 import { cancelarPartido, confirmarResultado, corregirResultado, iniciarPartido, rechazarResultado } from "../../desafio/actions/partidos";
 import { anotarEnCola, anotarPartidosEnCola, asignarSiguienteDeCola, reordenarCola, sacarDeCola } from "../../desafio/actions/cola";
@@ -46,7 +48,7 @@ type Props = {
     candidatos: CandidatoInscripcion[];
 };
 
-type Pestana = "juego" | "confirmar" | "cola" | "ranking" | "historial";
+type Pestana = "juego" | "inscriptos" | "confirmar" | "cola" | "ranking" | "historial";
 
 export default function PanelClient(p: Props) {
     const router = useRouter();
@@ -71,8 +73,16 @@ export default function PanelClient(p: Props) {
 
     const abierto = p.desafio.estado === ESTADO_DESAFIO.ABIERTO;
 
+    // El badge de Inscriptos cuenta los que faltan cobrar, no el total: es el
+    // número sobre el que hay que hacer algo. Sin precio de inscripción no
+    // aplica, y la pestaña sigue sirviendo para la asistencia.
+    const sinPagar = p.desafio.inscripcion
+        ? p.inscriptos.filter((i) => !i.pago).length
+        : 0;
+
     const pestanas: { id: Pestana; rotulo: string; badge?: number }[] = [
         { id: "juego", rotulo: "Juego" },
+        { id: "inscriptos", rotulo: "Inscriptos", badge: sinPagar },
         { id: "confirmar", rotulo: "Confirmar", badge: p.aConfirmar.length },
         { id: "cola", rotulo: "Cola", badge: p.cola.length },
         { id: "ranking", rotulo: "Ranking" },
@@ -156,6 +166,15 @@ export default function PanelClient(p: Props) {
 
                 {pestana === "juego" && (
                     <ZonaJuego desafio={p.desafio} parejas={p.parejas} pool={p.pool} inscriptos={p.inscriptos} candidatos={p.candidatos} pendiente={pendiente} correr={correr} />
+                )}
+                {pestana === "inscriptos" && (
+                    <ListaInscriptos
+                        desafioId={p.desafio.id}
+                        inscriptos={p.inscriptos}
+                        inscripcion={p.desafio.inscripcion}
+                        pendiente={pendiente}
+                        correr={correr}
+                    />
                 )}
                 {pestana === "confirmar" && <Bandeja partidos={p.aConfirmar} pendiente={pendiente} correr={correr} />}
                 {pestana === "cola" && (
@@ -2126,5 +2145,183 @@ function Modal({ titulo, children, onCerrar }: { titulo: string; children: React
                 <div className="flex-1 overflow-y-auto p-4">{children}</div>
             </div>
         </div>
+    );
+}
+
+// ── Inscriptos: presente y pagado ───────────────────────────────────────────
+//
+// Vive en su propia pestaña y no en el pool de "sin pareja" porque ese pool se
+// vacía a medida que se arman las parejas: los toggles ahí dejarían de estar
+// disponibles justo después de emparejar a alguien, que es cuando todavía hay
+// que cobrarle.
+
+function ListaInscriptos({
+    desafioId, inscriptos, inscripcion, pendiente, correr,
+}: {
+    desafioId: string;
+    inscriptos: InscriptoResumen[];
+    /** Precio de inscripción en pesos, o null si el desafío es gratis. */
+    inscripcion: number | null;
+    pendiente: boolean;
+    correr: (fn: () => Promise<{ ok: boolean; error?: string }>, exito: string, despues?: () => void) => void;
+}) {
+    const cobra = Boolean(inscripcion && inscripcion > 0);
+    const pagaron = inscriptos.filter((i) => i.pago).length;
+    const presentes = inscriptos.filter((i) => i.presente).length;
+
+    if (inscriptos.length === 0) {
+        return (
+            <section className="rounded-xl border border-hairline bg-card p-8 text-center">
+                <p className="text-[12px] text-subtle">Todavía no hay inscriptos en este desafío.</p>
+            </section>
+        );
+    }
+
+    return (
+        <section className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+                <span className="label-tech text-[8px] text-subtle">
+                    {presentes} de {inscriptos.length} presentes
+                    {cobra && ` · ${pagaron} pagaron`}
+                </span>
+
+                <div className="ml-auto flex flex-wrap gap-1.5">
+                    <BotonMasivo
+                        rotulo="Todos presentes"
+                        pendiente={pendiente}
+                        onClick={() => correr(
+                            () => marcarTodos(desafioId, "presente", true),
+                            "Todos marcados presentes.",
+                        )}
+                    />
+                    {cobra && (
+                        <BotonMasivo
+                            rotulo="Todos pagaron"
+                            pendiente={pendiente}
+                            onClick={() => correr(
+                                () => marcarTodos(desafioId, "pago", true),
+                                "Todos marcados como pagados.",
+                            )}
+                        />
+                    )}
+                </div>
+            </div>
+
+            <div className="rounded-xl border border-hairline bg-card divide-y divide-hairline">
+                {inscriptos.map((i) => (
+                    <FilaInscripto
+                        key={i.id}
+                        inscripto={i}
+                        cobra={cobra}
+                        pendiente={pendiente}
+                        correr={correr}
+                    />
+                ))}
+            </div>
+
+            {cobra && (
+                <p className="text-[10px] text-subtle text-center">
+                    Lo cobrado se suma solo a la caja del evento: {pagaron} × ${inscripcion!.toLocaleString("es-AR")}.
+                </p>
+            )}
+        </section>
+    );
+}
+
+function FilaInscripto({
+    inscripto: i, cobra, pendiente, correr,
+}: {
+    inscripto: InscriptoResumen;
+    cobra: boolean;
+    pendiente: boolean;
+    correr: (fn: () => Promise<{ ok: boolean; error?: string }>, exito: string, despues?: () => void) => void;
+}) {
+    return (
+        <div className={`flex items-center gap-2 px-3 py-2 ${i.presente ? "" : "opacity-50"}`}>
+            <Marca
+                activa={i.presente}
+                titulo={i.presente ? "Presente · tocá para marcar ausente" : "Ausente · no se puede emparejar"}
+                tono="celeste"
+                icono={<UserCheck className="w-3.5 h-3.5" />}
+                pendiente={pendiente}
+                onClick={() => correr(
+                    () => marcarPresente(i.id, !i.presente),
+                    i.presente ? `${i.nombre} marcado ausente.` : `${i.nombre} marcado presente.`,
+                )}
+            />
+
+            {cobra && (
+                <Marca
+                    activa={i.pago}
+                    titulo={i.pago ? "Pagó · tocá para desmarcar" : "No pagó"}
+                    tono="verde"
+                    icono={<DollarSign className="w-3.5 h-3.5" />}
+                    pendiente={pendiente}
+                    onClick={() => correr(
+                        () => marcarPago(i.id, !i.pago),
+                        i.pago ? `Pago de ${i.nombre} desmarcado.` : `${i.nombre} pagó.`,
+                    )}
+                />
+            )}
+
+            <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-bold text-foreground truncate">{i.nombre}</div>
+                {!i.presente && (
+                    <div className="text-[9px] text-subtle">Ausente · fuera del pool</div>
+                )}
+            </div>
+
+            <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-subtle">
+                {ETIQUETA_LADO[i.lado]}
+            </span>
+            {i.categoria && (
+                <span className="shrink-0 px-1.5 h-5 rounded-md bg-muted border border-hairline text-[9px] font-black uppercase text-celeste flex items-center">
+                    {i.categoria}
+                </span>
+            )}
+        </div>
+    );
+}
+
+/** El tilde de presente o de pagado. Encendido = hecho. */
+function Marca({
+    activa, titulo, tono, icono, pendiente, onClick,
+}: {
+    activa: boolean;
+    titulo: string;
+    tono: "celeste" | "verde";
+    icono: React.ReactNode;
+    pendiente: boolean;
+    onClick: () => void;
+}) {
+    const encendida = tono === "celeste"
+        ? "bg-celeste text-carbon-950 border-celeste"
+        : "bg-emerald-400 text-carbon-950 border-emerald-400";
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={pendiente}
+            title={titulo}
+            aria-pressed={activa}
+            className={`w-8 h-8 shrink-0 rounded-lg border flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 cursor-pointer ${activa ? encendida : "bg-muted border-hairline text-subtle hover:text-foreground"
+                }`}
+        >
+            {icono}
+        </button>
+    );
+}
+
+function BotonMasivo({ rotulo, pendiente, onClick }: { rotulo: string; pendiente: boolean; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={pendiente}
+            className="px-2.5 h-8 rounded-lg bg-muted border border-hairline label-tech text-[8px] text-muted-foreground hover:text-foreground hover:border-celeste/40 transition-all disabled:opacity-40 cursor-pointer"
+        >
+            {rotulo}
+        </button>
     );
 }

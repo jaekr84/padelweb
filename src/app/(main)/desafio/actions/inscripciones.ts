@@ -13,6 +13,7 @@ import {
 } from "@/db/schema";
 import { and, asc, eq, inArray, ne, notInArray, sql } from "drizzle-orm";
 import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
+import { sincronizarInscripciones } from "@/lib/contaduria-server";
 import {
     ESTADO_DESAFIO, ESTADO_INSCRIPCION, LADO,
     buscarCategoria, chequearCategoria, chequearTransicionInscripcion,
@@ -35,6 +36,10 @@ export type InscriptoResumen = {
     /** Jugador cargado a mano por un admin: todavía no tiene cuenta. */
     esInvitado: boolean;
     juegaParaArriba: boolean;
+    /** Cobrado. Alimenta el asiento automático de inscripciones de la caja. */
+    pago: boolean;
+    /** Presente. Un ausente sale del pool y no se puede emparejar. */
+    presente: boolean;
     inscriptoEn: string;
 };
 
@@ -112,6 +117,8 @@ export async function listarInscriptos(desafioId: string): Promise<InscriptoResu
             categoryName: challengeRegistrations.categoryName,
             status: challengeRegistrations.status,
             isException: challengeRegistrations.isException,
+            hasPaid: challengeRegistrations.hasPaid,
+            isPresent: challengeRegistrations.isPresent,
             registeredAt: challengeRegistrations.registeredAt,
             firstName: users.firstName,
             lastName: users.lastName,
@@ -137,6 +144,8 @@ export async function listarInscriptos(desafioId: string): Promise<InscriptoResu
             esExcepcion: !!f.isException,
             esInvitado: !!f.isGuest,
             juegaParaArriba: ctx ? juegaParaArriba(suya, ctx.categoriasDesafio) : false,
+            pago: !!f.hasPaid,
+            presente: !!f.isPresent,
             inscriptoEn: f.registeredAt.toISOString(),
         };
     });
@@ -432,5 +441,85 @@ export async function cambiarLado(desafioId: string, userId: string, lado: strin
 
         revalidarDesafio(desafioId);
         return { userId, lado: normalizado };
+    });
+}
+
+// ── Presente y pagado ───────────────────────────────────────────────────────
+//
+// Dos marcas por inscripto, con efectos distintos:
+//   · presente → un ausente sale del pool y no se puede emparejar
+//   · pagó     → recalcula el asiento de inscripciones de la contaduría
+//
+// El pago es plata: se sincroniza con la caja en cada cambio, igual que el
+// `paid_player_ids` de los torneos y el `has_paid` de la cancha abierta.
+
+/** La inscripción, con su desafío, o error si no existe. */
+async function inscripcionDe(inscripcionId: string) {
+    const [fila] = await db
+        .select({ id: challengeRegistrations.id, desafioId: challengeRegistrations.challengeId })
+        .from(challengeRegistrations)
+        .where(eq(challengeRegistrations.id, inscripcionId))
+        .limit(1);
+
+    if (!fila) throw new ErrorDesafio("Esa inscripción ya no existe.");
+    return fila;
+}
+
+export async function marcarPago(inscripcionId: string, pago: boolean) {
+    return ejecutar("marcarPago", async () => {
+        const session = await requerirAdmin();
+        const inscripcion = await inscripcionDe(inscripcionId);
+
+        await db
+            .update(challengeRegistrations)
+            .set({ hasPaid: pago })
+            .where(eq(challengeRegistrations.id, inscripcionId));
+
+        // El asiento se recalcula siempre desde los pagos marcados, así que
+        // marcar y desmarcar son la misma operación para la caja.
+        await sincronizarInscripciones("desafio", inscripcion.desafioId, session.userId);
+        revalidarDesafio(inscripcion.desafioId);
+    });
+}
+
+export async function marcarPresente(inscripcionId: string, presente: boolean) {
+    return ejecutar("marcarPresente", async () => {
+        await requerirAdmin();
+        const inscripcion = await inscripcionDe(inscripcionId);
+
+        await db
+            .update(challengeRegistrations)
+            .set({ isPresent: presente })
+            .where(eq(challengeRegistrations.id, inscripcionId));
+
+        revalidarDesafio(inscripcion.desafioId);
+    });
+}
+
+/**
+ * Marca a todos los inscriptos del desafío de una sola vez.
+ *
+ * Un desafío puede tener decenas de jugadores y cobrarles de a uno es el tipo
+ * de tarea que se hace mal cuando hay quince personas esperando para jugar.
+ */
+export async function marcarTodos(
+    desafioId: string,
+    campo: "pago" | "presente",
+    valor: boolean,
+) {
+    return ejecutar("marcarTodos", async () => {
+        const session = await requerirAdmin();
+
+        await db
+            .update(challengeRegistrations)
+            .set(campo === "pago" ? { hasPaid: valor } : { isPresent: valor })
+            .where(and(
+                eq(challengeRegistrations.challengeId, desafioId),
+                // Los dados de baja no cuentan: ni se cobran ni juegan.
+                ne(challengeRegistrations.status, ESTADO_INSCRIPCION.BAJA),
+            ));
+
+        if (campo === "pago") await sincronizarInscripciones("desafio", desafioId, session.userId);
+        revalidarDesafio(desafioId);
     });
 }

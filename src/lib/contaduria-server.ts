@@ -69,19 +69,24 @@ export async function leerEvento(tipo: TipoEvento, id: string): Promise<DatosEve
             .from(challenges).where(eq(challenges.id, id)).limit(1);
         if (!d) return null;
 
-        // El desafío no marca pagos uno por uno: lo más cerca que hay del
-        // esperado son los inscriptos que no se dieron de baja.
+        // Los pagos marcados, igual que en los otros dos eventos. Antes esto
+        // contaba inscriptos, que era una estimación de lo que se iba a cobrar
+        // y no de lo cobrado.
         const [c] = await db
             .select({ cantidad: count() })
             .from(challengeRegistrations)
-            .where(and(eq(challengeRegistrations.challengeId, id), ne(challengeRegistrations.status, "baja")));
-        const inscriptos = Number(c?.cantidad ?? 0);
+            .where(and(
+                eq(challengeRegistrations.challengeId, id),
+                ne(challengeRegistrations.status, "baja"),
+                eq(challengeRegistrations.hasPaid, true),
+            ));
+        const pagos = Number(c?.cantidad ?? 0);
         return {
             nombre: d.nombre,
             fecha: soloFecha(d.fecha),
             feeCentavos: (d.fee ?? 0) * 100,
-            unidades: inscriptos,
-            base: inscriptos + (inscriptos === 1 ? " inscripto" : " inscriptos"),
+            unidades: pagos,
+            base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
         };
     }
 
@@ -259,8 +264,26 @@ export async function obtenerPagadores(tipo: TipoEvento, id: string): Promise<Pa
             .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     }
 
-    // El desafío no marca pagos por jugador: no hay nada que listar.
-    return [];
+    const filas = await db
+        .select({
+            id: challengeRegistrations.id,
+            nombre: users.firstName,
+            apellido: users.lastName,
+            email: users.email,
+        })
+        .from(challengeRegistrations)
+        // Inner join: en el desafío todo inscripto es una fila de `users`,
+        // incluidos los invitados sin cuenta (van con `is_guest`).
+        .innerJoin(users, eq(users.id, challengeRegistrations.userId))
+        .where(and(
+            eq(challengeRegistrations.challengeId, id),
+            ne(challengeRegistrations.status, "baja"),
+            eq(challengeRegistrations.hasPaid, true),
+        ));
+
+    return filas
+        .map((f) => ({ id: f.id, nombre: nombreDe(f.nombre, f.apellido, f.email) }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
 // ── Pagos de un torneo ──────────────────────────────────────────────────────

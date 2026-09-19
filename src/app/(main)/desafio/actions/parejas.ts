@@ -164,7 +164,10 @@ export async function poolDisponibles(desafioId: string, respectoA?: string): Pr
         .where(
             and(
                 eq(challengeRegistrations.challengeId, desafioId),
-                eq(challengeRegistrations.status, ESTADO_INSCRIPCION.DISPONIBLE)
+                eq(challengeRegistrations.status, ESTADO_INSCRIPCION.DISPONIBLE),
+                // Un ausente no se empareja ni cuenta como suelto: si apareciera,
+                // se armarían parejas con gente que no está en la cancha.
+                eq(challengeRegistrations.isPresent, true)
             )
         )
         .orderBy(challengeRegistrations.registeredAt);
@@ -380,7 +383,10 @@ export async function contarSueltos(desafioId: string) {
         .where(
             and(
                 eq(challengeRegistrations.challengeId, desafioId),
-                eq(challengeRegistrations.status, ESTADO_INSCRIPCION.DISPONIBLE)
+                eq(challengeRegistrations.status, ESTADO_INSCRIPCION.DISPONIBLE),
+                // Un ausente no se empareja ni cuenta como suelto: si apareciera,
+                // se armarían parejas con gente que no está en la cancha.
+                eq(challengeRegistrations.isPresent, true)
             )
         );
     return Number(n) || 0;

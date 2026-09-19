@@ -674,10 +674,19 @@ export const challengeRegistrations = mysqlTable("challenge_registrations", {
     status: varchar("status", { length: 20 }).notNull().default("disponible"),
     // El admin puede inscribir salteando la validación de categoría.
     isException: boolean("is_exception").notNull().default(false),
+    // Cobrado. Es lo que alimenta el asiento automático de inscripciones de la
+    // contaduría, igual que `paid_player_ids` en torneos y `has_paid` en cancha
+    // abierta.
+    hasPaid: boolean("has_paid").notNull().default(false),
+    // Presente. Arranca en `true` porque el desafío es de duración abierta: se
+    // marca la ausencia, no la presencia. Un ausente sale del pool y no se
+    // puede emparejar.
+    isPresent: boolean("is_present").notNull().default(true),
     registeredAt: timestamp("registered_at").defaultNow().notNull(),
 }, (table) => ({
     challengeUserUniq: uniqueIndex("challenge_registrations_challenge_user_uniq").on(table.challengeId, table.userId),
     challengeStatusIdx: index("challenge_registrations_challenge_status_idx").on(table.challengeId, table.status),
+    challengePaidIdx: index("challenge_registrations_challenge_paid_idx").on(table.challengeId, table.hasPaid),
     userIdx: index("challenge_registrations_user_idx").on(table.userId),
 }));
 
