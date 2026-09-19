@@ -56,7 +56,9 @@ async function main() {
             const evento = await leerEvento(tipo, id);
             if (!evento) continue;
 
-            const monto = evento.feeCentavos * evento.unidades;
+            // Ya viene sumado jugador por jugador: en torneos el socio y el
+            // invitado pagan distinto, así que `fee × unidades` daría otro número.
+            const monto = evento.esperadoCentavos;
             if (monto <= 0) continue;
 
             conPlata++;

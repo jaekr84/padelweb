@@ -212,7 +212,7 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
         movimientos,
         desglose,
         pagadores,
-        inscripciones: evento.feeCentavos > 0
+        inscripciones: evento.feeCentavos > 0 || evento.esperadoCentavos > 0
             ? {
                 feeCentavos: evento.feeCentavos,
                 unidades: evento.unidades,
@@ -266,7 +266,7 @@ export async function obtenerCajaDeEvento(tipoCrudo: string, id: string): Promis
         nombre: evento.nombre || "Evento sin nombre",
         totales,
         movimientos: cantidad,
-        inscripciones: evento.feeCentavos > 0
+        inscripciones: evento.feeCentavos > 0 || evento.esperadoCentavos > 0
             ? {
                 feeCentavos: evento.feeCentavos,
                 unidades: evento.unidades,
