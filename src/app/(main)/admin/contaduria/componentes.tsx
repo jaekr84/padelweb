@@ -155,7 +155,11 @@ export function Tabla({
                                 {formatearFecha(m.fecha)}
                             </td>
                             <td className="py-2 px-2"><Chip tipo={m.tipo} /></td>
-                            <td className="py-2 px-2 max-w-0">
+                            {/* `w-full` además de `max-w-0`: en una tabla es lo
+                                que hace que esta celda se quede con el espacio
+                                que sobra. Con `max-w-0` solo, la columna colapsa
+                                y la descripción queda ilegible. */}
+                            <td className="py-2 px-2 max-w-0 w-full">
                                 <div className="text-[12px] font-bold text-foreground truncate" title={m.descripcion}>
                                     {m.descripcion}
                                 </div>

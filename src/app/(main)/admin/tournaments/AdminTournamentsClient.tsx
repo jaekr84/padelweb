@@ -168,8 +168,16 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
 
     return (
         <tr className="hover:bg-surface transition-colors group align-middle">
-            <td className="px-3 py-2">
-                <span className="text-[12px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate block max-w-[240px]">
+            {/* `max-w-0` en vez de un ancho fijo: en una tabla hace que la celda
+                se quede con el espacio que sobra y recorte recién ahí. Con
+                `max-w-[240px]` cortaba siempre a 240px aunque la columna tuviera
+                el doble libre, y tres torneos distintos se veían como el mismo
+                "TORNEO SEPTIEMBRE 2027 CABALL...". */}
+            <td className="px-3 py-2 max-w-0 w-full">
+                <span
+                    title={tournament.name}
+                    className="text-[12px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate block"
+                >
                     {tournament.name}
                 </span>
             </td>
