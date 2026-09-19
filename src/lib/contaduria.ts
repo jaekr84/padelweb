@@ -350,3 +350,20 @@ export const esAutomatico = (origen: string) => origen === ORIGEN.AUTO_INSCRIPCI
  */
 export const llevaInscripcionesAutomaticas = (tipo: TipoEvento) =>
     tipo === TIPO_EVENTO.TORNEO || tipo === TIPO_EVENTO.CANCHA_ABIERTA;
+
+// ── Aviso de caja desactualizada ────────────────────────────────────────────
+
+/**
+ * El panel de la caja se consulta a sí mismo, así que no se entera de un pago
+ * marcado en otra parte de la pantalla. Quien lo marca avisa por acá.
+ *
+ * Se avisa DESPUÉS de que el servidor confirmó el guardado, no cuando cambia el
+ * estado local: el asiento se recalcula en el servidor, y preguntar antes
+ * devolvería el monto viejo y el panel quedaría siempre un clic atrás.
+ */
+export const EVENTO_CAJA_DESACTUALIZADA = "contaduria:caja-desactualizada";
+
+export function avisarCajaDesactualizada() {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent(EVENTO_CAJA_DESACTUALIZADA));
+}

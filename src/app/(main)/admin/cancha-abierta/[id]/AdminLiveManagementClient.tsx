@@ -31,6 +31,7 @@ import {
     removeRegistrationAction
 } from "../actions";
 import { toast } from "sonner";
+import { avisarCajaDesactualizada } from "@/lib/contaduria";
 import Link from "next/link";
 import CajaDelEvento from "@/app/(main)/admin/contaduria/CajaDelEvento";
 import {
@@ -494,6 +495,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         ));
 
         const res = await togglePaymentStatusAction(regId, !currentStatus);
+        if (res.success) avisarCajaDesactualizada();
         if (!res.success) {
             toast.error("Error al actualizar pago");
             // Revert
@@ -534,6 +536,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
         const res = await bulkMarkAllAsPaidAction(event.id);
         if (res.success) {
+            avisarCajaDesactualizada();
             toast.success("Todos marcados como pagados");
             startTransition(() => {
                 router.refresh();
@@ -607,8 +610,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 </div>
             </div>
 
-            {/* Sólo se dibuja para admin/superadmin: la acción que lo
-                alimenta no le devuelve datos a un usuario `club`. */}
+            {/* Botón flotante: sólo se dibuja para admin/superadmin, porque la
+                acción que lo alimenta no le devuelve datos a un usuario `club`. */}
             <CajaDelEvento tipo="cancha_abierta" id={event.id} nombre={event.name} />
 
             {/* Navigation Tabs */}

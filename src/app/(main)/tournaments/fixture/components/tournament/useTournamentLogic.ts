@@ -1,5 +1,6 @@
 "use client";
 
+import { avisarCajaDesactualizada } from "@/lib/contaduria";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -236,6 +237,9 @@ export function useTournamentLogic({
                 presentPlayerIds: type === 'present' ? ids : Array.from(present),
                 paidPlayerIds: type === 'paid' ? ids : Array.from(paid),
             });
+            // El asiento de inscripciones ya se recalculó en el servidor: recién
+            // ahora el panel de la caja puede pedir el número nuevo.
+            if (type === 'paid') avisarCajaDesactualizada();
             toast.success(type === 'present' ? "Asistencia actualizada" : "Pagos actualizados");
         } catch (e) {
             toast.error("Error al guardar cambios");
@@ -292,7 +296,11 @@ export function useTournamentLogic({
             tournamentId,
             presentPlayerIds: Array.from(saveKind === 'present' ? next : present),
             paidPlayerIds: Array.from(saveKind === 'paid' ? next : paid),
-        }).catch(e => console.error("Failed to save attendance", e));
+        })
+            // Se avisa después del guardado, no al tocar: el asiento lo
+            // recalcula el servidor y preguntar antes daría el monto viejo.
+            .then(() => { if (saveKind === 'paid') avisarCajaDesactualizada(); })
+            .catch(e => console.error("Failed to save attendance", e));
     };
     const toggleMemberPresent = (pairId: string, slot: 0 | 1) =>
         toggleMemberChecked(present, setPresent, 'present', pairId, slot);

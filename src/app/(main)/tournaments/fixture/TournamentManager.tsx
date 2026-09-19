@@ -182,11 +182,10 @@ export default function TournamentManager(props: TournamentManagerProps) {
                 />
 
                 <div className="w-full px-3 md:px-6 lg:px-10 py-3 pb-16">
-                    {/* Sólo se dibuja para admin/superadmin: la acción que lo
-                        alimenta no le devuelve datos a un club ni al dueño. */}
-                    <div className="mb-4">
-                        <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
-                    </div>
+                    {/* Botón flotante: sólo se dibuja para admin/superadmin,
+                        porque la acción que lo alimenta no le devuelve datos a un
+                        club ni al dueño del torneo. */}
+                    <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
 
                     <AnimatePresence mode="wait">
                         {step === "setup" && (

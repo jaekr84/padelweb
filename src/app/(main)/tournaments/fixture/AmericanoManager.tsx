@@ -1234,11 +1234,10 @@ export default function AmericanoManager({
                     </p>
                 </div>
 
-                {/* Sólo se dibuja para admin/superadmin: la acción que lo
-                    alimenta no le devuelve datos a un club ni al dueño. */}
-                <div className="mb-3">
-                    <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
-                </div>
+                {/* Botón flotante: sólo se dibuja para admin/superadmin,
+                    porque la acción que lo alimenta no le devuelve datos a un
+                    club ni al dueño del torneo. */}
+                <CajaDelEvento tipo="torneo" id={tournamentId} nombre={tournamentName} />
 
                 <AnimatePresence mode="wait">
                     {step === "setup" && (
