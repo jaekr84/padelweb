@@ -10,7 +10,7 @@ import {
     accountingEntries, challengeRegistrations, challenges, openCourtEvents,
     openCourtRegistrations, tournamentGroups, tournaments, users,
 } from "@/db/schema";
-import { and, count, eq, ne } from "drizzle-orm";
+import { and, count, eq, inArray, ne } from "drizzle-orm";
 import {
     ORIGEN, RUBRO, TIPO_EVENTO, TIPO_MOVIMIENTO, hoyISO, llevaInscripcionesAutomaticas,
     type TipoEvento,
@@ -25,11 +25,20 @@ export function soloFecha(valor: string | null | undefined): string | null {
 export type DatosEvento = {
     nombre: string;
     fecha: string | null;
-    /** Precio de inscripción en centavos. 0 si el evento es gratis. */
+    /**
+     * Precio de referencia en centavos (el general cuando hay dos). Es para
+     * mostrar: el total NO se calcula multiplicando por esto.
+     */
     feeCentavos: number;
-    /** Cuántas veces se cobra ese precio. */
+    /** Cuántas personas pagaron. */
     unidades: number;
-    /** Ej: "24 pagos marcados". Se muestra para que el criterio no se adivine. */
+    /**
+     * Lo recaudado por inscripciones, ya sumado jugador por jugador. Va
+     * calculado y no como `fee × unidades` porque los torneos tienen dos
+     * precios (socio y general) y el total depende de quién pagó cada uno.
+     */
+    esperadoCentavos: number;
+    /** Ej: "24 pagos · 14 socios + 10 invitados". El criterio, a la vista. */
     base: string;
 };
 
@@ -47,19 +56,27 @@ export async function leerEvento(tipo: TipoEvento, id: string): Promise<DatosEve
                 nombre: tournaments.name,
                 fecha: tournaments.startDate,
                 fee: tournaments.registrationFee,
+                feeSocio: tournaments.memberRegistrationFee,
                 pagos: tournaments.paidPlayerIds,
             })
             .from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) return null;
 
+        const general = (t.fee ?? 0) * 100;
+        // Sin precio de socio cargado, hay un solo precio para todos.
+        const socio = t.feeSocio == null ? general : t.feeSocio * 100;
+
         const { pagadores } = await pagosDeTorneo(id, t.pagos);
-        const pagos = pagadores.length;
+        const socios = pagadores.filter((p) => p.esSocio).length;
+        const invitados = pagadores.length - socios;
+
         return {
             nombre: t.nombre,
             fecha: soloFecha(t.fecha),
-            feeCentavos: (t.fee ?? 0) * 100,
-            unidades: pagos,
-            base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
+            feeCentavos: general,
+            unidades: pagadores.length,
+            esperadoCentavos: socios * socio + invitados * general,
+            base: baseDeTorneo(pagadores.length, socios, invitados, socio !== general),
         };
     }
 
@@ -81,11 +98,13 @@ export async function leerEvento(tipo: TipoEvento, id: string): Promise<DatosEve
                 eq(challengeRegistrations.hasPaid, true),
             ));
         const pagos = Number(c?.cantidad ?? 0);
+        const fee = (d.fee ?? 0) * 100;
         return {
             nombre: d.nombre,
             fecha: soloFecha(d.fecha),
-            feeCentavos: (d.fee ?? 0) * 100,
+            feeCentavos: fee,
             unidades: pagos,
+            esperadoCentavos: fee * pagos,
             base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
         };
     }
@@ -100,13 +119,26 @@ export async function leerEvento(tipo: TipoEvento, id: string): Promise<DatosEve
         .from(openCourtRegistrations)
         .where(and(eq(openCourtRegistrations.eventId, id), eq(openCourtRegistrations.hasPaid, true)));
     const pagos = Number(c?.cantidad ?? 0);
+    const fee = (e.fee ?? 0) * 100;
     return {
         nombre: e.nombre,
         fecha: soloFecha(e.fecha),
-        feeCentavos: (e.fee ?? 0) * 100,
+        feeCentavos: fee,
         unidades: pagos,
+        esperadoCentavos: fee * pagos,
         base: pagos + (pagos === 1 ? " pago marcado" : " pagos marcados"),
     };
+}
+
+/** "24 pagos · 14 socios + 10 invitados", o sólo los pagos si hay un precio. */
+function baseDeTorneo(total: number, socios: number, invitados: number, dosPrecios: boolean): string {
+    const pagos = total + (total === 1 ? " pago marcado" : " pagos marcados");
+    if (!dosPrecios || total === 0) return pagos;
+
+    const partes: string[] = [];
+    if (socios) partes.push(`${socios} ${socios === 1 ? "socio" : "socios"}`);
+    if (invitados) partes.push(`${invitados} ${invitados === 1 ? "invitado" : "invitados"}`);
+    return `${pagos} · ${partes.join(" + ")}`;
 }
 
 /**
@@ -160,7 +192,10 @@ export async function sincronizarInscripciones(
         const evento = await leerEvento(tipo, eventoId);
         if (!evento) return;
 
-        const total = evento.feeCentavos * evento.unidades;
+        // Ya viene sumado jugador por jugador: en torneos el socio y el
+        // invitado pagan distinto, así que multiplicar por un precio único
+        // daría un número que no es el que se cobró.
+        const total = evento.esperadoCentavos;
 
         const [existente] = await db
             .select({ id: accountingEntries.id })
@@ -221,7 +256,15 @@ export async function sincronizarInscripciones(
 
 // ── Quiénes pagaron ─────────────────────────────────────────────────────────
 
-export type Pagador = { id: string; nombre: string };
+export type Pagador = {
+    id: string;
+    nombre: string;
+    /**
+     * Tiene cuenta en la app, así que le corresponde el precio de socio. Un
+     * invitado —cargado a mano, con o sin fila en `users`— paga el general.
+     */
+    esSocio: boolean;
+};
 
 const nombreDe = (nombre: string | null, apellido: string | null, email: string | null) => {
     const completo = [nombre, apellido].filter(Boolean).join(" ").trim();
@@ -245,10 +288,12 @@ export async function obtenerPagadores(tipo: TipoEvento, id: string): Promise<Pa
         const filas = await db
             .select({
                 id: openCourtRegistrations.id,
+                usuarioId: openCourtRegistrations.userId,
                 invitado: openCourtRegistrations.guestName,
                 nombre: users.firstName,
                 apellido: users.lastName,
                 email: users.email,
+                esInvitado: users.isGuest,
             })
             .from(openCourtRegistrations)
             // Left join: los invitados no tienen fila en `users` y se llaman
@@ -260,6 +305,7 @@ export async function obtenerPagadores(tipo: TipoEvento, id: string): Promise<Pa
             .map((f) => ({
                 id: f.id,
                 nombre: f.invitado?.trim() || nombreDe(f.nombre, f.apellido, f.email),
+                esSocio: Boolean(f.usuarioId) && !f.esInvitado,
             }))
             .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     }
@@ -270,6 +316,7 @@ export async function obtenerPagadores(tipo: TipoEvento, id: string): Promise<Pa
             nombre: users.firstName,
             apellido: users.lastName,
             email: users.email,
+            esInvitado: users.isGuest,
         })
         .from(challengeRegistrations)
         // Inner join: en el desafío todo inscripto es una fila de `users`,
@@ -282,7 +329,11 @@ export async function obtenerPagadores(tipo: TipoEvento, id: string): Promise<Pa
         ));
 
     return filas
-        .map((f) => ({ id: f.id, nombre: nombreDe(f.nombre, f.apellido, f.email) }))
+        .map((f) => ({
+            id: f.id,
+            nombre: nombreDe(f.nombre, f.apellido, f.email),
+            esSocio: !f.esInvitado,
+        }))
         .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
@@ -307,6 +358,12 @@ type EntradaGrupo = {
     name?: string;
     player1?: string;
     player2?: string;
+    /**
+     * Id del jugador (o del primer integrante de la pareja). Es un id de
+     * `users` cuando tiene cuenta, o `manual_<uuid>` cuando lo cargó un admin
+     * a mano y no existe en ningún lado.
+     */
+    userId?: string | null;
     partnerUserId?: string | null;
 };
 
@@ -368,7 +425,11 @@ export async function pagosDeTorneo(
     if (claves.length === 0) return { pagadores: [] };
 
     const entradas = await entradasDelTorneo(tournamentId);
-    const pagadores: Pagador[] = [];
+
+    // Primero se arma la lista con el id de usuario en crudo; recién después se
+    // resuelve quién tiene cuenta, en una sola consulta.
+    type Parcial = { id: string; nombre: string; usuarioId: string | null };
+    const parciales: Parcial[] = [];
 
     for (const clave of claves) {
         const { entrada: idEntrada, integrante } = partirClave(clave);
@@ -378,7 +439,7 @@ export async function pagosDeTorneo(
         // clave). Se cuenta como una sola persona: cobrar de más por una fila
         // fantasma sería peor que quedarse corto.
         if (!entrada) {
-            pagadores.push({ id: clave, nombre: "Jugador no identificado" });
+            parciales.push({ id: clave, nombre: "Jugador no identificado", usuarioId: null });
             continue;
         }
 
@@ -387,20 +448,54 @@ export async function pagosDeTorneo(
         if (integrante === null) {
             if (esPareja) {
                 // Formato viejo: el id pelado quiere decir que pagaron los dos.
-                pagadores.push({ id: `${clave}_0`, nombre: entrada.player1 || entrada.name || "Jugador" });
-                pagadores.push({ id: `${clave}_1`, nombre: entrada.player2 || "Jugador" });
+                parciales.push({ id: `${clave}_0`, nombre: entrada.player1 || entrada.name || "Jugador", usuarioId: entrada.userId ?? null });
+                parciales.push({ id: `${clave}_1`, nombre: entrada.player2 || "Jugador", usuarioId: entrada.partnerUserId ?? null });
             } else {
-                pagadores.push({ id: clave, nombre: entrada.name || "Jugador" });
+                parciales.push({ id: clave, nombre: entrada.name || "Jugador", usuarioId: entrada.userId ?? null });
             }
             continue;
         }
 
-        const nombre = integrante === 0
-            ? entrada.player1 || entrada.name || "Jugador"
-            : entrada.player2 || entrada.name || "Jugador";
-        pagadores.push({ id: clave, nombre });
+        parciales.push({
+            id: clave,
+            nombre: integrante === 0
+                ? entrada.player1 || entrada.name || "Jugador"
+                : entrada.player2 || entrada.name || "Jugador",
+            usuarioId: (integrante === 0 ? entrada.userId : entrada.partnerUserId) ?? null,
+        });
     }
+
+    const conCuenta = await idsConCuenta(parciales.map((p) => p.usuarioId));
+
+    const pagadores = parciales.map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        esSocio: Boolean(p.usuarioId && conCuenta.has(p.usuarioId)),
+    }));
 
     pagadores.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     return { pagadores };
+}
+
+/**
+ * De una lista de ids de la planilla, cuáles corresponden a un jugador con
+ * cuenta de verdad — que es quien paga el precio de socio.
+ *
+ * Hay dos formas de ser invitado y las dos quedan afuera: el jugador cargado a
+ * mano en el fixture, que ni siquiera tiene fila en `users` y viaja con el
+ * prefijo `manual_`, y el invitado del sistema de Desafío, que sí tiene fila
+ * pero marcada con `is_guest`.
+ */
+async function idsConCuenta(ids: (string | null)[]): Promise<Set<string>> {
+    const reales = [...new Set(
+        ids.filter((id): id is string => Boolean(id) && !id!.startsWith("manual_"))
+    )];
+    if (reales.length === 0) return new Set();
+
+    const filas = await db
+        .select({ id: users.id, esInvitado: users.isGuest })
+        .from(users)
+        .where(inArray(users.id, reales));
+
+    return new Set(filas.filter((f) => !f.esInvitado).map((f) => f.id));
 }

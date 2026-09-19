@@ -278,10 +278,18 @@ export type ResumenEvento = EventoRef & {
  * muestra en pantalla para que nadie tenga que adivinar el criterio.
  */
 export type EsperadoInscripciones = {
-    /** Precio unitario en centavos. 0 si el evento es gratis o no tiene fee. */
+    /**
+     * Precio de referencia en centavos (el general cuando hay dos). Es para
+     * mostrar: el esperado NO sale de multiplicar por esto.
+     */
     feeCentavos: number;
+    /** Cuántas personas pagaron. */
     unidades: number;
-    /** `feeCentavos * unidades`. */
+    /**
+     * Lo que corresponde cobrar, ya sumado jugador por jugador. Los torneos
+     * tienen precio de socio y precio general, así que el total depende de
+     * quién pagó cada uno y no de un precio único por la cantidad.
+     */
     esperadoCentavos: number;
     /** Ya cargado en la caja con rubro "inscripciones" para este evento. */
     cargadoCentavos: number;

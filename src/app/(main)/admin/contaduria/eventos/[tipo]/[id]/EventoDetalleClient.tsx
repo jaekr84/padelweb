@@ -377,7 +377,14 @@ function ListaPagadores({ pagadores }: { pagadores: DetalleEvento["pagadores"] }
             {abierta && (
                 <ul className="px-3 pb-2.5 space-y-0.5 border-t border-hairline pt-2">
                     {pagadores.map((p) => (
-                        <li key={p.id} className="text-[11px] text-muted-foreground truncate">{p.nombre}</li>
+                        <li key={p.id} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <span className="truncate">{p.nombre}</span>
+                            {/* Qué precio se le cobró: es la explicación de por
+                                qué el total no es la cantidad por un precio. */}
+                            <span className={`ml-auto shrink-0 text-[8px] font-black uppercase tracking-wider ${p.esSocio ? "text-celeste" : "text-subtle"}`}>
+                                {p.esSocio ? "socio" : "invitado"}
+                            </span>
+                        </li>
                     ))}
                 </ul>
             )}

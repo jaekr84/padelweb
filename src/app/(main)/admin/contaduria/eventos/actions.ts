@@ -216,7 +216,7 @@ export async function obtenerDetalleEvento(tipoCrudo: string, id: string): Promi
             ? {
                 feeCentavos: evento.feeCentavos,
                 unidades: evento.unidades,
-                esperadoCentavos: evento.feeCentavos * evento.unidades,
+                esperadoCentavos: evento.esperadoCentavos,
                 cargadoCentavos: cargado,
                 base: evento.base,
             }
@@ -270,7 +270,7 @@ export async function obtenerCajaDeEvento(tipoCrudo: string, id: string): Promis
             ? {
                 feeCentavos: evento.feeCentavos,
                 unidades: evento.unidades,
-                esperadoCentavos: evento.feeCentavos * evento.unidades,
+                esperadoCentavos: evento.esperadoCentavos,
                 cargadoCentavos: cargado,
                 base: evento.base,
             }
