@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import InvitationsClient from "./InvitationsClient";
 import { listInvitations } from "./actions";
+import { getRegistrationMode } from "@/lib/registration-mode";
 
 export default async function InvitationsPage() {
     const session = await getSession();
@@ -10,11 +11,14 @@ export default async function InvitationsPage() {
         redirect("/home");
     }
 
-    const invitations = await listInvitations();
+    const [invitations, registrationMode] = await Promise.all([
+        listInvitations(),
+        getRegistrationMode(),
+    ]);
 
     return (
         <div className="min-h-screen bg-grid-carbon text-foreground flex flex-col">
-            <InvitationsClient initialInvitations={invitations} />
+            <InvitationsClient initialInvitations={invitations} initialRegistrationMode={registrationMode} />
         </div>
     );
 }

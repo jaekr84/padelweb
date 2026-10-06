@@ -6,6 +6,12 @@ import { hashPassword } from "@/lib/auth-server";
 import { eq, and, isNull, gt } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { jwtVerify } from "jose";
+import { getRegistrationMode } from "@/lib/registration-mode";
+
+/** El formulario necesita saber si muestra el alta directa o la solicitud. */
+export async function getRegistrationModeAction() {
+    return getRegistrationMode();
+}
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
@@ -74,15 +80,26 @@ export async function registerAction(formData: FormData) {
     const documentNumber = (formData.get("documentNumber") as string) || null;
     const birthDate = formData.get("birthDate") as string;
     const gender = formData.get("gender") as string;
+    const side = formData.get("side") as string;
     const invitationToken = formData.get("invitationToken") as string;
-    const inviteClubId = formData.get("inviteClubId") as string;
 
-    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender) {
+    // En modo "invitación" el servidor exige el token: el formulario oculta el
+    // alta directa, pero un POST armado a mano no pasa por el formulario.
+    const registrationMode = await getRegistrationMode();
+    if (!invitationToken && registrationMode === "invitacion") {
+        return { error: "El registro es solo por invitación. Solicitá acceso para recibir tu link." };
+    }
+
+    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender || !side) {
         return { error: "Faltan campos obligatorios" };
     }
 
     if (gender !== "masculino" && gender !== "femenino") {
         return { error: "Género no válido" };
+    }
+
+    if (side !== "drive" && side !== "reves" && side !== "ambos") {
+        return { error: "Lado de juego no válido" };
     }
 
     // 1. Check if user already exists (email or document)
@@ -154,6 +171,8 @@ export async function registerAction(formData: FormData) {
         invitationClubId = invitation.clubId;
     }
 
+    const autoApprove = registrationMode === "libre";
+
     // 3. Hash password
     const passwordHash = await hashPassword(password);
 
@@ -175,8 +194,13 @@ export async function registerAction(formData: FormData) {
                 documentNumber,
                 birthDate,
                 gender,
-                clubId: inviteClubId || invitationClubId || null,
-                approvalStatus: "pending",
+                side,
+                // El club sale sólo de la invitación validada, nunca de un campo
+                // del formulario: con el registro abierto cualquiera podría
+                // mandar un clubId ajeno y quedar vinculado a ese club.
+                clubId: invitationClubId,
+                // En modo "libre" la cuenta nace aprobada; en los demás espera a un admin.
+                approvalStatus: autoApprove ? "approved" : "pending",
             });
 
             if (invitationId) {
@@ -206,6 +230,14 @@ export async function registerAction(formData: FormData) {
     }
 
     revalidatePath("/admin/requests");
+
+    if (autoApprove) {
+        return {
+            success: true,
+            pendingApproval: false,
+            message: "Cuenta creada. Ya podés iniciar sesión."
+        };
+    }
 
     return {
         success: true,

@@ -2,9 +2,9 @@
 
 import { useTransition, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { createInvitation, listInvitations, revokeInvitation, getInvitationLink } from "./actions";
+import { createInvitation, listInvitations, revokeInvitation, getInvitationLink, updateRegistrationMode } from "./actions";
 import { toast } from "sonner";
-import { Send, Loader2, User, Building2, ShieldCheck, Mail, Link as LinkIcon, Copy, Check, Ban, Clock, History } from "lucide-react";
+import { Send, Loader2, User, Building2, ShieldCheck, Mail, Link as LinkIcon, Copy, Check, Ban, Clock, History, Globe, Lock } from "lucide-react";
 
 type InvitationRow = Awaited<ReturnType<typeof listInvitations>>[number];
 
@@ -18,7 +18,56 @@ const STATUS_STYLES: Record<string, string> = {
 const formatDate = (d: Date | string | null) =>
     d ? new Date(d).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
 
-export default function InvitationsClient({ initialInvitations = [] }: { initialInvitations?: InvitationRow[] }) {
+type RegistrationMode = "invitacion" | "abierta" | "libre";
+
+const MODE_OPTIONS: { value: RegistrationMode; label: string; title: string; description: string; toast: string }[] = [
+    {
+        value: "invitacion",
+        label: "Invitación",
+        title: "Solo por invitación",
+        description: "Sin link de invitación solo se puede solicitar acceso. La cuenta queda pendiente de aprobación.",
+        toast: "Registro solo por invitación",
+    },
+    {
+        value: "abierta",
+        label: "Abierto",
+        title: "Abierto con aprobación",
+        description: "Cualquiera puede crear su cuenta desde /register, pero queda pendiente hasta que un admin la aprueba en Solicitudes.",
+        toast: "Registro abierto con aprobación",
+    },
+    {
+        value: "libre",
+        label: "Sin aprobación",
+        title: "Abierto sin aprobación",
+        description: "Cualquiera puede crear su cuenta desde /register y entrar enseguida, sin pasar por Solicitudes.",
+        toast: "Registro abierto sin aprobación",
+    },
+];
+
+export default function InvitationsClient({
+    initialInvitations = [],
+    initialRegistrationMode = "invitacion",
+}: {
+    initialInvitations?: InvitationRow[];
+    initialRegistrationMode?: RegistrationMode;
+}) {
+    const [registrationMode, setRegistrationMode] = useState<RegistrationMode>(initialRegistrationMode);
+    const [savingMode, setSavingMode] = useState(false);
+    const currentMode = MODE_OPTIONS.find(o => o.value === registrationMode) ?? MODE_OPTIONS[0];
+
+    const changeRegistrationMode = async (next: RegistrationMode) => {
+        if (next === registrationMode || savingMode) return;
+        setSavingMode(true);
+        const res = await updateRegistrationMode(next);
+        setSavingMode(false);
+        if (res?.error) {
+            toast.error(res.error);
+            return;
+        }
+        setRegistrationMode(next);
+        toast.success(MODE_OPTIONS.find(o => o.value === next)?.toast ?? "Modo de registro actualizado");
+    };
+
     const [invitations, setInvitations] = useState<InvitationRow[]>(initialInvitations);
     const [revokingId, setRevokingId] = useState<string | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
@@ -174,6 +223,49 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                     Genera links de invitación para nuevos jugadores. Cada link lleva un token propio y deja de funcionar apenas se completa el registro, o a las 24 horas.
                 </p>
                 </motion.header>
+
+                {/* Modo de registro: sólo por invitación, abierto, o abierto sin aprobación */}
+                <div className="glass-card p-4 rounded-2xl flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 shrink-0 rounded-lg flex items-center justify-center ${
+                            registrationMode === "libre" ? "bg-amber-500/10 text-amber-400"
+                                : registrationMode === "abierta" ? "bg-blue-500/10 text-blue-400"
+                                    : "bg-emerald-500/10 text-emerald-500"
+                        }`}>
+                            {savingMode
+                                ? <Loader2 className="w-4 h-4 animate-spin" />
+                                : registrationMode === "invitacion" ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[8px] font-black uppercase tracking-[0.25em] text-muted-foreground">Modo de registro</p>
+                            <p className="text-[12px] font-black text-foreground">{currentMode.title}</p>
+                            <p className="text-[9px] text-subtle font-medium leading-relaxed">
+                                {currentMode.description}
+                                {registrationMode !== "invitacion" && " Las invitaciones siguen sirviendo para vincular a un club."}
+                            </p>
+                        </div>
+                    </div>
+                    <div role="radiogroup" aria-label="Modo de registro" className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-surface-raised border border-hairline">
+                        {MODE_OPTIONS.map(option => {
+                            const active = option.value === registrationMode;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={active}
+                                    disabled={savingMode}
+                                    onClick={() => changeRegistrationMode(option.value)}
+                                    className={`py-2 px-1 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] transition-colors disabled:opacity-50 ${
+                                        active ? "bg-card text-foreground shadow border border-hairline-strong" : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                >
+                                    {option.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 <form ref={formRef} action={handleSubmit} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden shadow-xl transition-all group">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

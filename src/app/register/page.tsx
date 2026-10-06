@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { registerAction, requestRegistrationAction, verifyTokenAction } from "./actions";
-import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronDown, ChevronLeft } from "lucide-react";
+import { registerAction, requestRegistrationAction, verifyTokenAction, getRegistrationModeAction } from "./actions";
+import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronDown, ChevronLeft, ArrowLeftRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -12,7 +12,6 @@ import { toast } from "sonner";
 export default function RegisterPage() {
     const searchParams = useSearchParams();
     const invitationToken = searchParams.get("invitation");
-    const inviteClubId = searchParams.get("invite");
 
     const [isPending, startTransition] = useTransition();
     const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +20,18 @@ export default function RegisterPage() {
     // Por qué no vale el link (usada / vencida / revocada), para poder decírselo.
     const [invalidReason, setInvalidReason] = useState<string | null>(null);
     const [requestSuccess, setRequestSuccess] = useState(false);
-    const [pendingApproval, setPendingApproval] = useState(false);
+    // Cuenta recién creada: "pending" espera a un admin, "approved" ya puede entrar.
+    const [createdStatus, setCreatedStatus] = useState<"pending" | "approved" | null>(null);
+    // "abierta"/"libre": cualquiera puede crear su cuenta; "invitacion": sólo con link.
+    const [mode, setMode] = useState<"invitacion" | "abierta" | "libre" | null>(null);
+
+    useEffect(() => {
+        getRegistrationModeAction().then(setMode).catch(() => setMode("invitacion"));
+    }, []);
+
+    const isOpen = mode === "abierta" || mode === "libre";
+    const showRegisterForm = isVerified || isOpen;
+    const isLoading = mode === null || isVerified === null;
 
     // Verify token on mount if present
     useEffect(() => {
@@ -46,8 +56,8 @@ export default function RegisterPage() {
             if (res?.error) {
                 setError(res.error);
                 toast.error(res.error);
-            } else if (res?.pendingApproval) {
-                setPendingApproval(true);
+            } else if (res?.success) {
+                setCreatedStatus(res.pendingApproval ? "pending" : "approved");
                 toast.success(res.message);
             }
         });
@@ -105,12 +115,14 @@ export default function RegisterPage() {
 
                 <div className="text-center mb-10 relative">
                     <h1 className="text-4xl font-black italic tracking-tight text-foreground mb-2 uppercase">
-                        {isVerified ? "Registro de Jugador" : "Solicitar Registro"}
+                        {isLoading ? "Registro" : showRegisterForm ? "Registro de Jugador" : "Solicitar Registro"}
                     </h1>
                     <p className="text-muted-foreground font-medium">
-                        {isVerified
-                            ? "Completá tus datos para registrarte."
-                            : "El registro es por invitación. Completa tus datos para solicitar acceso."}
+                        {isLoading
+                            ? "\u00a0"
+                            : showRegisterForm
+                                ? "Completá tus datos para registrarte."
+                                : "El registro es por invitación. Completa tus datos para solicitar acceso."}
                     </p>
 
                     {/* Que quien recibe el link sepa que es de un solo uso y vence. */}
@@ -122,7 +134,7 @@ export default function RegisterPage() {
                     )}
                 </div>
 
-                {pendingApproval ? (
+                {createdStatus ? (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -133,13 +145,19 @@ export default function RegisterPage() {
                         </div>
                         <h3 className="text-xl font-black uppercase italic text-foreground tracking-tight">Cuenta Creada</h3>
                         <p className="text-muted-foreground text-sm font-medium">
-                            Tu cuenta fue creada con éxito, pero un administrador debe aprobarla antes de que puedas iniciar sesión. Te avisaremos cuando esté habilitada.
+                            {createdStatus === "approved"
+                                ? "Tu cuenta fue creada con éxito. Ya podés iniciar sesión."
+                                : "Tu cuenta fue creada con éxito, pero un administrador debe aprobarla antes de que puedas iniciar sesión. Te avisaremos cuando esté habilitada."}
                         </p>
                         <Link href="/login" className="mt-4 text-[10px] font-black uppercase tracking-widest text-celeste hover:text-celeste/80">
-                            Volver al Login
+                            {createdStatus === "approved" ? "Iniciar Sesión" : "Volver al Login"}
                         </Link>
                     </motion.div>
-                ) : !isVerified ? (
+                ) : isLoading ? (
+                    <div className="flex justify-center py-16">
+                        <Loader2 className="w-6 h-6 animate-spin text-subtle" />
+                    </div>
+                ) : !showRegisterForm ? (
                     <form onSubmit={handleRequest} className="space-y-6 relative text-left">
                         {invitationToken && invalidReason && (
                             <div className="p-4 rounded-2xl bg-rojo/10 border border-rojo/30 text-center">
@@ -238,10 +256,25 @@ export default function RegisterPage() {
                     </form>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6 relative text-left">
-                        <input type="hidden" name="invitationToken" value={invitationToken || ""} />
-                        <input type="hidden" name="inviteClubId" value={inviteClubId || ""} />
+                        {/* Con el registro abierto un link inválido no bloquea: se
+                            registra sin invitación (y sin el club que traía). */}
+                        <input type="hidden" name="invitationToken" value={isVerified ? invitationToken || "" : ""} />
 
-                        {invitationToken && (
+                        {invitationToken && invalidReason && (
+                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-amber-400">
+                                    {invalidReason === "usada" ? "Este link de invitación ya fue usado"
+                                        : invalidReason === "vencida" ? "El link de invitación venció"
+                                            : invalidReason === "revocada" ? "Esta invitación fue anulada"
+                                                : "El link de invitación no es válido"}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+                                    Igual podés crear tu cuenta: el registro está abierto.
+                                </p>
+                            </div>
+                        )}
+
+                        {invitationToken && isVerified && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -336,10 +369,11 @@ export default function RegisterPage() {
                                     <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
                                     <select
                                         name="gender"
+                                        defaultValue=""
                                         required
                                         className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground appearance-none focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans cursor-pointer relative z-10"
                                     >
-                                        <option value="" disabled selected>Selecciona</option>
+                                        <option value="" disabled>Selecciona</option>
                                         <option value="masculino">Masculino</option>
                                         <option value="femenino">Femenino</option>
                                     </select>
@@ -347,26 +381,46 @@ export default function RegisterPage() {
                                 </div>
                             </div>
 
-                            {/* Password */}
+                            {/* Side */}
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">Contraseña</label>
+                                <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">Lado de juego</label>
                                 <div className="group relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
-                                    <input
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
+                                    <ArrowLeftRight className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
+                                    <select
+                                        name="side"
+                                        defaultValue=""
                                         required
-                                        placeholder="••••••••"
-                                        className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground placeholder:text-subtle focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-subtle hover:text-foreground transition-colors"
+                                        className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground appearance-none focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans cursor-pointer relative z-10"
                                     >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
+                                        <option value="" disabled>Selecciona</option>
+                                        <option value="drive">Drive</option>
+                                        <option value="reves">Revés</option>
+                                        <option value="ambos">Ambos</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors pointer-events-none" />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">Contraseña</label>
+                            <div className="group relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
+                                <input
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    placeholder="••••••••"
+                                    className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground placeholder:text-subtle focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-subtle hover:text-foreground transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
                             </div>
                         </div>
 

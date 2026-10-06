@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { invitations, clubs } from "@/db/schema";
 import { desc, eq, isNull, and } from "drizzle-orm";
+import { setRegistrationMode, isRegistrationMode, type RegistrationMode } from "@/lib/registration-mode";
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
@@ -231,4 +232,23 @@ export async function getInvitationLink(id: string) {
         .sign(INVITATION_SECRET);
 
     return { success: true, link: `${await resolveBaseUrl()}/register?invitation=${token}`, expiresAt };
+}
+
+/** Cambia el modo de registro: sólo por invitación, abierto, o abierto sin aprobación. */
+export async function updateRegistrationMode(mode: RegistrationMode) {
+    if (!(await checkSuperadmin())) {
+        return { error: "No autorizado" };
+    }
+    if (!isRegistrationMode(mode)) {
+        return { error: "Modo no válido" };
+    }
+
+    try {
+        await setRegistrationMode(mode);
+        revalidatePath("/admin/invitations");
+        return { success: true, mode };
+    } catch (err) {
+        console.error("Error updating registration mode:", err);
+        return { error: "No se pudo cambiar el modo de registro" };
+    }
 }
