@@ -103,6 +103,7 @@ export default async function EditTournamentPage({ params }: Props) {
         imageUrl: tournament.imageUrl,
         surface: tournament.surface,
         maxSlots: parsedModalidad?.maxSlots ?? 0,
+        maxTeamsPerClub: parsedModalidad?.maxTeamsPerClub ?? 0,
         modalidad: parsedModalidad,
         registrationFee: tournament.registrationFee,
         memberRegistrationFee: tournament.memberRegistrationFee,

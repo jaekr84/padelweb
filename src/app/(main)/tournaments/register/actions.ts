@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { registrations, users, tournaments, categoriesTable } from "@/db/schema";
 import { eq, and, like, or, ne, sql, notInArray } from "drizzle-orm";
 import { HIDDEN_USER_EMAILS, noEsInvitado } from "@/lib/hidden-users";
+import { getRegistrationPhase, getMaxTeamsPerClub } from "@/lib/tournament-phase";
+import { countClubTeams } from "@/lib/club-teams";
 
 type RegisterInput = {
     tournamentId: string;
@@ -22,7 +24,8 @@ export async function registerForTournament(input: RegisterInput) {
     // Verify user role and points
     const [dbUser] = await db.select({ 
         role: users.role,
-        points: users.points 
+        points: users.points,
+        clubId: users.clubId,
     }).from(users).where(eq(users.id, userId)).limit(1);
     
     if (!dbUser) throw new Error("Usuario no encontrado");
@@ -106,11 +109,48 @@ export async function registerForTournament(input: RegisterInput) {
         modalidad: tournaments.modalidad,
         categories: tournaments.categories,
         isMembersOnly: tournaments.isMembersOnly,
-        clubId: tournaments.clubId
+        clubId: tournaments.clubId,
+        openDateClub: tournaments.openDateClub,
+        openDateGeneral: tournaments.openDateGeneral,
     }).from(tournaments).where(eq(tournaments.id, input.tournamentId)).limit(1);
     
     if (!tournament) throw new Error("Torneo no encontrado");
     if (tournament.status !== "published") throw new Error("El torneo no está disponible para inscripción");
+
+    // 🔍 Etapa de inscripción. Las pantallas ya ocultan el botón fuera de fecha,
+    // pero esto es un server action: sin chequearlo acá, el tope por club de la
+    // etapa de prioridad se esquivaría con un POST armado a mano.
+    const phase = getRegistrationPhase(tournament);
+    const userClubId = dbUser.clubId || null;
+    const hasPartner = !!(input.partnerUserId || input.partnerName);
+
+    if (phase === "cerrada") {
+        throw new Error("Las inscripciones para este torneo todavía no están abiertas.");
+    }
+    if (phase === "prioridad") {
+        if (!userClubId) {
+            throw new Error("Por ahora sólo pueden inscribirse jugadores con club. Las inscripciones generales abren el " + (tournament.openDateGeneral || "día de apertura general") + ".");
+        }
+        // Un compañero sin cuenta no tiene club conocido, así que no se puede
+        // validar que sea del mismo: en esta etapa se espera a la apertura general.
+        if (hasPartner && !input.partnerUserId) {
+            throw new Error("En la etapa de clubes tu compañero tiene que tener cuenta y ser de tu club. Con un compañero invitado podés inscribirte desde la apertura general.");
+        }
+    }
+
+    // 🔍 La pareja tiene que ser del mismo club, en cualquier etapa. Si ninguno
+    // tiene club, también son "del mismo" (ambos sin club).
+    if (input.partnerUserId) {
+        const [partner] = await db
+            .select({ clubId: users.clubId })
+            .from(users)
+            .where(eq(users.id, input.partnerUserId))
+            .limit(1);
+        if (!partner) throw new Error("No encontramos a tu compañero.");
+        if ((partner.clubId || null) !== userClubId) {
+            throw new Error("Tu compañero tiene que ser del mismo club que vos.");
+        }
+    }
 
     // 🔍 3. Validar Jugador 1 
     await validatePlayerRequirements(userId, "principal");
@@ -120,49 +160,18 @@ export async function registerForTournament(input: RegisterInput) {
         await validatePlayerRequirements(input.partnerUserId, "tu compañero");
     }
     
-    // 🔍 5. Verificar cupos disponibles (si hay límite)
+    // 🔍 5. Cupos, tope por club, duplicado e insert, todo bajo un lock de la
+    // fila del torneo. Sin el lock, dos inscripciones simultáneas podían contar
+    // "queda 1 lugar" a la vez y entrar las dos, pasándose del cupo o del tope
+    // del club. `FOR UPDATE` serializa las inscripciones de un mismo torneo.
     const tournamentMod = typeof tournament.modalidad === 'string' 
         ? JSON.parse(tournament.modalidad) 
         : tournament.modalidad;
-    
-    const maxSlots = tournamentMod?.maxSlots;
+    const maxSlots = Number(tournamentMod?.maxSlots || 0);
+    const maxTeamsPerClub = getMaxTeamsPerClub(tournamentMod);
 
-    if (maxSlots && maxSlots > 0) {
-        const [regCount] = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(registrations)
-            .where(
-                and(
-                    eq(registrations.tournamentId, input.tournamentId),
-                    eq(registrations.status, "confirmed")
-                )
-            );
-        
-        const count = Number((regCount as any).count || 0);
-        if (count >= maxSlots) {
-            throw new Error(`Lo sentimos, el torneo ya ha alcanzado su cupo máximo de ${maxSlots} inscripciones.`);
-        }
-    }
-
-    // Check duplicate registration (same user in same tournament)
-    const [existing] = await db
-        .select({ id: registrations.id })
-        .from(registrations)
-        .where(
-            and(
-                eq(registrations.tournamentId, input.tournamentId),
-                eq(registrations.userId, userId),
-                eq(registrations.status, "confirmed")
-            )
-        )
-        .limit(1);
-
-    if (existing) throw new Error("Ya estás inscripto en este torneo");
-
-    // Insert
-    const newId = crypto.randomUUID();
     const registrationData = {
-        id: newId,
+        id: crypto.randomUUID(),
         tournamentId: input.tournamentId,
         userId,
         category: input.category || null,
@@ -172,7 +181,53 @@ export async function registerForTournament(input: RegisterInput) {
         status: "confirmed",
     };
 
-    await db.insert(registrations).values(registrationData);
+    await db.transaction(async (tx) => {
+        await tx
+            .select({ id: tournaments.id })
+            .from(tournaments)
+            .where(eq(tournaments.id, input.tournamentId))
+            .for("update");
+
+        if (maxSlots > 0) {
+            const [regCount] = await tx
+                .select({ count: sql<number>`count(*)` })
+                .from(registrations)
+                .where(
+                    and(
+                        eq(registrations.tournamentId, input.tournamentId),
+                        eq(registrations.status, "confirmed")
+                    )
+                );
+            if (Number((regCount as any).count || 0) >= maxSlots) {
+                throw new Error(`Lo sentimos, el torneo ya ha alcanzado su cupo máximo de ${maxSlots} inscripciones.`);
+            }
+        }
+
+        // Tope de equipos por club, sólo en la etapa de prioridad. Como la
+        // pareja es del mismo club, el equipo cuenta para el club de quien inscribe.
+        if (phase === "prioridad" && maxTeamsPerClub > 0 && userClubId) {
+            const clubTeams = await countClubTeams(input.tournamentId, userClubId, tx);
+            if (clubTeams >= maxTeamsPerClub) {
+                throw new Error(`Tu club ya inscribió ${clubTeams} de ${maxTeamsPerClub} equipos permitidos en la etapa de clubes. Vas a poder inscribirte cuando se abra al público${tournament.openDateGeneral ? ` (${tournament.openDateGeneral})` : ""}.`);
+            }
+        }
+
+        // Duplicado (mismo jugador en el mismo torneo)
+        const [existing] = await tx
+            .select({ id: registrations.id })
+            .from(registrations)
+            .where(
+                and(
+                    eq(registrations.tournamentId, input.tournamentId),
+                    eq(registrations.userId, userId),
+                    eq(registrations.status, "confirmed")
+                )
+            )
+            .limit(1);
+        if (existing) throw new Error("Ya estás inscripto en este torneo");
+
+        await tx.insert(registrations).values(registrationData);
+    });
 
     // Update last participation date for the user
     await db.update(users)
@@ -266,3 +321,4 @@ export async function searchPlayersForPartner(query: string) {
         )
         .limit(10);
 }
+

@@ -4,15 +4,18 @@ import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users, registrations, categoriesTable } from "@/db/schema";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
+import { getRegistrationPhase, getMaxTeamsPerClub, type RegistrationPhase } from "@/lib/tournament-phase";
+import { countClubTeams } from "@/lib/club-teams";
 
 export type RegistrationContext = {
     tournament: any;
     currentUser: any;
     allCategories: any[];
     initialRegistrations: any[];
+    registrationPhase: RegistrationPhase;
     eligibility: {
         isEligible: boolean;
-        reason?: "role" | "gender" | "category" | "membership" | "open_date" | "already_registered" | "full";
+        reason?: "role" | "gender" | "category" | "membership" | "open_date" | "already_registered" | "full" | "club_limit";
         message?: string;
     };
 };
@@ -117,6 +120,20 @@ export async function getRegistrationContext(tournamentId: string): Promise<Regi
         }
     }
 
+    // Tope de equipos por club en la etapa de prioridad
+    const registrationPhase = getRegistrationPhase(tournament);
+    if (eligibility.isEligible && registrationPhase === "prioridad" && dbUser.clubId) {
+        const maxTeamsPerClub = getMaxTeamsPerClub(tournament.modalidad);
+        if (maxTeamsPerClub > 0) {
+            const clubTeams = await countClubTeams(tournamentId, dbUser.clubId);
+            if (clubTeams >= maxTeamsPerClub) {
+                eligibility.isEligible = false;
+                eligibility.reason = "club_limit";
+                eligibility.message = `Tu club ya completó sus ${maxTeamsPerClub} equipos de la etapa de clubes. Vas a poder inscribirte cuando se abra al público${tournament.openDateGeneral ? ` (${tournament.openDateGeneral})` : ""}.`;
+            }
+        }
+    }
+
     // 4. Fetch Meta Data
     const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
 
@@ -155,9 +172,11 @@ export async function getRegistrationContext(tournamentId: string): Promise<Regi
             name: dbUser.firstName && dbUser.lastName ? `${dbUser.firstName} ${dbUser.lastName}` : (dbUser.firstName || "Usuario"),
             email: dbUser.email || "",
             gender: dbUser.gender,
+            clubId: dbUser.clubId ?? null,
         },
         allCategories: JSON.parse(JSON.stringify(allCats)),
         initialRegistrations,
+        registrationPhase,
         eligibility
     };
 }

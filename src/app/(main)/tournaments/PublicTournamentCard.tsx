@@ -16,6 +16,7 @@ import { getPlayerProfileData } from "@/app/actions/players";
 import PlayerCard from "@/components/PlayerCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { startConversation } from "@/app/(main)/mensajes/actions";
+import { getRegistrationPhase } from "@/lib/tournament-phase";
 
 interface PublicTournamentCardProps {
     tournament: any;
@@ -67,15 +68,6 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     }
 
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    const today = (() => {
-        const now = new Date();
-        return [
-            now.getFullYear(),
-            String(now.getMonth() + 1).padStart(2, '0'),
-            String(now.getDate()).padStart(2, '0')
-        ].join('-');
-    })();
-
     const isCreator = Boolean(currentUserId && tournament.createdByUserId && currentUserId === tournament.createdByUserId);
     const isClubOwner = Boolean(currentUserId && tournament.club?.ownerId && currentUserId === tournament.club.ownerId);
     const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
@@ -85,14 +77,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     let isOpen = false;
     let openDate: string | null = null;
 
+    // La etapa de prioridad es para jugadores de cualquier club (no sólo del
+    // organizador), igual que la página de inscripción y el servidor.
     if (tournament.status === "published" || tournament.status === "open") {
-        if (isClubMember) {
-            isOpen = tournament.openDateClub ? today >= tournament.openDateClub : false;
-            openDate = tournament.openDateClub;
-        } else {
-            isOpen = tournament.openDateGeneral ? today >= tournament.openDateGeneral : false;
-            openDate = tournament.openDateGeneral;
-        }
+        const phase = getRegistrationPhase(tournament);
+        const hasClub = !!userClubId;
+        isOpen = phase === "general" || (phase === "prioridad" && hasClub);
+        openDate = hasClub && phase === "cerrada" ? tournament.openDateClub : tournament.openDateGeneral;
     }
 
     const isPreregistration = tournament.status === "published" && !isOpen;
@@ -526,7 +517,9 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                 isUserRegistered ? "Inscripto" :
                                                     canDoMassInsc ? "Masiva" :
                                                         isOpen ? (isFull ? "Lleno" : (tournament.isMembersOnly && !isClubMember ? "Socios" : "Inscribirme")) :
-                                                            isPreregistration ? "Pronto" : "Cerrado"}
+                                                            isPreregistration
+                                                                ? (openDate ? `Abre ${formatDate(openDate).slice(0, 5)}` : "Pronto")
+                                                                : "Cerrado"}
                                         </span>
                                     </button>
                                 </div>

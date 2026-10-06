@@ -5,6 +5,8 @@ import { eq, and, inArray, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import Link from "next/link";
+import { getRegistrationPhase, getMaxTeamsPerClub } from "@/lib/tournament-phase";
+import { countClubTeams } from "@/lib/club-teams";
 import { Trophy, Ban, Users, Clock, Shield } from "lucide-react";
 
 type Props = {
@@ -101,13 +103,13 @@ export default async function RegisterPage({ searchParams }: Props) {
     let message = "";
 
     if (tournament.status === "published") {
-        if (hasClub) {
+        const phase = getRegistrationPhase(tournament, today);
+        isOpen = phase === "general" || (phase === "prioridad" && hasClub);
+        if (hasClub && phase === "cerrada") {
             openDate = tournament.openDateClub;
-            isOpen = openDate ? today >= openDate : false;
             message = "Las inscripciones para jugadores con club se habilitarán el ";
         } else {
             openDate = tournament.openDateGeneral;
-            isOpen = openDate ? today >= openDate : false;
             message = "Las inscripciones generales se habilitarán el ";
         }
     } else if (tournament.status !== "draft") {
@@ -179,6 +181,29 @@ export default async function RegisterPage({ searchParams }: Props) {
                 </div>
             );
         }
+    }
+
+    // Tope de equipos por club en la etapa de prioridad
+    const registrationPhase = getRegistrationPhase(tournament, today);
+    const maxTeamsPerClub = getMaxTeamsPerClub(tournament.modalidad);
+    if (registrationPhase === "prioridad" && maxTeamsPerClub > 0 && dbUser.clubId
+        && (await countClubTeams(tid, dbUser.clubId)) >= maxTeamsPerClub) {
+        return (
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+                <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
+                    <div className="w-20 h-20 bg-celeste/10 border border-celeste/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Shield className="w-10 h-10 text-celeste" />
+                    </div>
+                    <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Cupo del club completo</h2>
+                    <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
+                        Tu club ya inscribió sus {maxTeamsPerClub} equipos de la etapa de clubes. Vas a poder inscribirte cuando se abra al público{tournament.openDateGeneral ? ` (${tournament.openDateGeneral})` : ""}.
+                    </p>
+                    <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
+                        ← Volver a Torneos
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     // 3. Check Club Membership if Members Only
@@ -272,8 +297,10 @@ export default async function RegisterPage({ searchParams }: Props) {
                 name: dbUser.firstName && dbUser.lastName ? `${dbUser.firstName} ${dbUser.lastName}` : (dbUser.firstName || "Usuario"),
                 email: dbUser.email || "",
                 gender: dbUser.gender,
+                clubId: dbUser.clubId ?? null,
             }}
             initialRegistrations={initialRegistrations}
+            registrationPhase={registrationPhase}
         />
     );
 }

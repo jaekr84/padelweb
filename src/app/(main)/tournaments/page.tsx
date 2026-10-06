@@ -178,21 +178,12 @@ export default async function TournamentsPage({
     const finished = allTournaments.filter(t => t.status === "finalizado");
     finishedC = finished.length;
 
+    // "Inscripción" lista todos los torneos publicados para todos, tengan club o
+    // no: así los que no tienen club se enteran de los próximos torneos durante
+    // la etapa de clubes. Quién puede inscribirse y desde cuándo lo resuelve
+    // cada tarjeta (Inscribirme / Abre DD/MM) y lo vuelve a validar el servidor.
     const published = allTournaments.filter(t => t.status === "published");
-    const registrable = published.filter(t => {
-        const today = new Date().toLocaleString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).split(',')[0];
-        const hasClub = dbUser?.clubId != null;
-
-        if (hasClub && t.openDateClub) {
-            return today >= t.openDateClub;
-        }
-        if (t.openDateGeneral) {
-            return today >= t.openDateGeneral;
-        }
-
-        return false;
-    });
-    openC = registrable.length;
+    openC = published.length;
 
     const active = allTournaments.filter(t => t.status !== "draft");
     totalActiveC = active.length;
@@ -203,7 +194,7 @@ export default async function TournamentsPage({
     if (currentFilter === "todos") {
         baseFiltered = active;
     } else if (currentFilter === "abiertas") {
-        baseFiltered = registrable;
+        baseFiltered = published;
     } else if (currentFilter === "envivo") {
         baseFiltered = live;
     } else if (currentFilter === "terminados") {

@@ -131,6 +131,7 @@ export default function RegisterTournamentModal({
                             currentUser={context?.currentUser}
                             allCategories={context?.allCategories || []}
                             initialRegistrations={context?.initialRegistrations || []}
+                            registrationPhase={context?.registrationPhase}
                             isModal={true}
                             onSuccess={() => {
                                 if (onSuccess) onSuccess();

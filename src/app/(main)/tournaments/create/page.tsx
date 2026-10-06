@@ -51,6 +51,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 imageUrl: t.imageUrl ?? null,
                 isMembersOnly: !!t.isMembersOnly,
                 maxSlots: tModalidad?.maxSlots ?? 0,
+                maxTeamsPerClub: tModalidad?.maxTeamsPerClub ?? 0,
                 modalidad: tModalidad,
                 registrationFee: t.registrationFee ?? null,
                 memberRegistrationFee: t.memberRegistrationFee ?? null,

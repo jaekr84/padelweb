@@ -30,6 +30,8 @@ type TournamentInput = {
     openDateClub?: string | null;
     openDateGeneral?: string | null;
     maxSlots?: number;
+    /** Tope de equipos por club en la etapa de prioridad (0 = sin tope). */
+    maxTeamsPerClub?: number;
     modalidad?: {
         mode: string;
         participacion: string;
@@ -123,7 +125,7 @@ export async function createTournament(data: TournamentInput) {
             categories: data.categories,
             pointsConfig: pointsConfig, // Club-created tournaments get 0 points config
             imageUrl: data.imageUrl || null,
-            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
+            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0, maxTeamsPerClub: Math.max(0, Math.floor(Number(data.maxTeamsPerClub) || 0)) } : null,
             status: "published",
             type: data.type || "round_robin",
             registrationFee: data.registrationFee || null,
@@ -179,7 +181,7 @@ export async function updateTournament(id: string, data: TournamentInput) {
             // We do NOT update pointsConfig here if it's a club, 
             // but for simplicity we just don't include it in the update payload if it shouldn't change.
             imageUrl: data.imageUrl || null,
-            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
+            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0, maxTeamsPerClub: Math.max(0, Math.floor(Number(data.maxTeamsPerClub) || 0)) } : null,
             registrationFee: data.registrationFee || null,
             memberRegistrationFee: data.memberRegistrationFee || null,
             type: data.type || "round_robin",

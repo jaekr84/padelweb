@@ -47,6 +47,7 @@ export type InitialData = {
     imageUrl: string | null;
     surface: string | null;
     maxSlots: number | null;
+    maxTeamsPerClub?: number | null;
     modalidad: {
         mode: "categorias" | "libre";
         participacion: "pareja" | "individual";
@@ -142,6 +143,7 @@ export default function CreateTournamentForm({
         openDateGeneral: initialData?.openDateGeneral ?? today,
         description: initialData?.description ?? "",
         maxSlots: String(initialData?.maxSlots ?? 0),
+        maxTeamsPerClub: String(initialData?.maxTeamsPerClub ?? 0),
         registrationFee: initialData?.registrationFee !== null && initialData?.registrationFee !== undefined ? String(initialData.registrationFee) : "",
         memberRegistrationFee: initialData?.memberRegistrationFee !== null && initialData?.memberRegistrationFee !== undefined ? String(initialData.memberRegistrationFee) : "",
         surface: initialData?.surface ?? "",
@@ -215,6 +217,7 @@ export default function CreateTournamentForm({
                 categories: finalCategories,
                 imageUrl: imageUrl,
                 maxSlots: Number(info.maxSlots),
+                maxTeamsPerClub: Number(info.maxTeamsPerClub),
                 modalidad: {
                     mode: modalidad.mode,
                     participacion: modalidad.participacion,
@@ -553,6 +556,13 @@ export default function CreateTournamentForm({
                                         <label className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Gral. Público</label>
                                         <input type="date" value={info.openDateGeneral} onChange={e => setInfo({ ...info, openDateGeneral: e.target.value })} className="w-full bg-muted border border-border rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
                                     </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Máx. equipos por club (etapa socios)</label>
+                                    <input type="number" min={0} value={info.maxTeamsPerClub} onChange={e => setInfo({ ...info, maxTeamsPerClub: e.target.value })} className="w-full bg-muted border border-border rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
+                                    <p className="text-[8px] text-muted-foreground font-medium ml-1 leading-relaxed">
+                                        Hasta la apertura al público, cada club puede inscribir como máximo esta cantidad de equipos. Después se libera. 0 = sin límite.
+                                    </p>
                                 </div>
                             </div>
 

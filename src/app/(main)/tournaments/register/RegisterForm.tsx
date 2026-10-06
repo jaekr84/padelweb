@@ -22,7 +22,7 @@ type Tournament = {
     registrationFee: number | null;
 };
 
-type CurrentUser = { id: string; name: string; email: string; gender?: string | null };
+type CurrentUser = { id: string; name: string; email: string; gender?: string | null; clubId?: string | null };
 
 type Category = {
     id: string;
@@ -50,6 +50,7 @@ export default function RegisterForm({
     currentUser,
     allCategories = [],
     initialRegistrations = [],
+    registrationPhase,
     isModal = false,
     onSuccess,
     onCancel
@@ -58,6 +59,8 @@ export default function RegisterForm({
     currentUser: CurrentUser;
     allCategories?: Category[];
     initialRegistrations?: Registrant[];
+    /** En "prioridad" no se permite compañero invitado (sin cuenta no hay club que validar). */
+    registrationPhase?: "cerrada" | "prioridad" | "general";
     isModal?: boolean;
     onSuccess?: () => void;
     onCancel?: () => void;
@@ -116,16 +119,22 @@ export default function RegisterForm({
         }
 
         const query = search.toLowerCase();
+        // La pareja tiene que ser del mismo club (o ambos sin club): sólo se
+        // ofrecen compañeros posibles. El servidor lo vuelve a validar.
+        const myClubId = currentUser.clubId ?? null;
         const results = allPlayers
             .filter(u =>
                 u.id !== currentUser.id &&
+                ((u as any).clubId ?? null) === myClubId &&
                 (u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)) &&
                 !isHiddenUser(u.email)
             )
             .slice(0, 10);
 
         setSearchResults(results);
-    }, [search, partnerMode, partnerName, allPlayers, currentUser.id]);
+    }, [search, partnerMode, partnerName, allPlayers, currentUser.id, currentUser.clubId]);
+
+    const guestBlocked = registrationPhase === "prioridad";
 
     // --- Helper for Eligibility ---
     const checkPlayerEligibility = (player: any) => {
@@ -550,7 +559,9 @@ export default function RegisterForm({
                                                 </button>
                                                 <button
                                                     onClick={() => switchMode("guest")}
-                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-celeste" : "text-muted-foreground hover:text-foreground"}`}
+                                                    disabled={guestBlocked}
+                                                    title={guestBlocked ? "Disponible desde la apertura general" : undefined}
+                                                    className={`disabled:opacity-40 disabled:cursor-not-allowed flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-celeste" : "text-muted-foreground hover:text-foreground"}`}
                                                 >
                                                     Invitado
                                                 </button>
@@ -559,6 +570,11 @@ export default function RegisterForm({
                                                     style={{ left: partnerMode === "search" ? "4px" : "calc(50%)" }}
                                                 />
                                             </div>
+
+                                            <p className="mx-3 mt-2 text-[9px] text-muted-foreground font-medium leading-relaxed">
+                                                Tu compañero/a tiene que ser de tu mismo club.
+                                                {guestBlocked && " En la etapa de clubes no se puede inscribir con un invitado sin cuenta."}
+                                            </p>
 
                                             <div className="p-3">
                                                 {partnerMode === "guest" ? (
