@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  reactCompiler: false,
   // El servidor de deploy tiene pocos recursos y el build se colgaba a los 15
   // minutos (en local tarda ~25s). TypeScript se verifica en local con
   // `npm run typecheck` antes de subir, así que en el build se saltea.
