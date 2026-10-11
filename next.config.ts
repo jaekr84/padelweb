@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Media de la landing: sin esto Next sirve /public con max-age=0 y cada
+  // visita vuelve a pedir los videos del hero. Un mes de caché; si un archivo
+  // cambia, se publica con otro nombre (remateN-web.mp4 → remateN-web2.mp4).
+  async headers() {
+    const longCache = [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }];
+    return [
+      { source: "/mp4/:path*", headers: longCache },
+      { source: "/img/landing/:path*", headers: longCache },
+    ];
+  },
   experimental: {
     // Un solo worker para no agotar la memoria del servidor de build.
     cpus: 1,
