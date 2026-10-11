@@ -8,6 +8,7 @@ import {
     publicMatches, publicMatchRegistrations,
     posts, postComments, marketplaceItems,
     conversations, messages, pushSubscriptions, contactMessages,
+    accountingEntries, accountingPrizeConfigs,
 } from "@/db/schema";
 import { getSession, comparePassword } from "@/lib/auth-server";
 import { count, sql, inArray, or, eq } from "drizzle-orm";
@@ -53,6 +54,7 @@ export async function getResetCounts(): Promise<ResetCounts> {
         deletableUsers, protectedUsers, tournamentsCount, tournamentRegs,
         ocEvents, ocRegs, matchesCount, matchRegs, clubsCount,
         postsCount, marketCount, convCount, msgCount,
+        accEntries, accPrizes,
     ] = await Promise.all([
         one(users, deletableUserCondition),
         one(users, protectedUserCondition),
@@ -67,6 +69,8 @@ export async function getResetCounts(): Promise<ResetCounts> {
         one(marketplaceItems),
         one(conversations),
         one(messages),
+        one(accountingEntries),
+        one(accountingPrizeConfigs),
     ]);
 
     return {
@@ -83,6 +87,8 @@ export async function getResetCounts(): Promise<ResetCounts> {
         marketplaceItems: marketCount,
         conversations: convCount,
         messages: msgCount,
+        accountingEntries: accEntries,
+        accountingPrizeConfigs: accPrizes,
     };
 }
 
@@ -127,6 +133,17 @@ async function wipeSocial(tx: any) {
     await tx.delete(pushSubscriptions);
     await tx.delete(contactMessages);
     await tx.delete(registrationRequests);
+}
+
+/**
+ * Contaduría: todos los movimientos (generales y de eventos, manuales y
+ * automáticos de inscripciones) y la configuración de reparto de premios.
+ * Va aparte del reset de torneos a propósito: los movimientos guardan el
+ * nombre del evento y la caja tiene sentido aunque el evento ya no exista.
+ */
+async function wipeAccounting(tx: any) {
+    await tx.delete(accountingPrizeConfigs);
+    await tx.delete(accountingEntries);
 }
 
 /**
@@ -208,6 +225,7 @@ export async function resetScope(scope: ResetScope, confirmation: string, passwo
             case "matches": await wipeMatches(tx); break;
             case "clubs": await wipeClubs(tx); break;
             case "social": await wipeSocial(tx); break;
+            case "accounting": await wipeAccounting(tx); break;
             case "users": await wipeUsers(tx); break;
             case "all":
                 // Orden: primero lo que depende de usuarios, después los usuarios.
@@ -215,6 +233,7 @@ export async function resetScope(scope: ResetScope, confirmation: string, passwo
                 await wipeOpenCourt(tx);
                 await wipeMatches(tx);
                 await wipeSocial(tx);
+                await wipeAccounting(tx);
                 await wipeUsers(tx);
                 await wipeClubs(tx);
                 break;
@@ -226,7 +245,7 @@ export async function resetScope(scope: ResetScope, confirmation: string, passwo
         before
     );
 
-    for (const path of ["/admin/users", "/admin/reset", "/tournaments", "/cancha-abierta", "/partidos", "/ranking", "/clubes", "/home"]) {
+    for (const path of ["/admin/users", "/admin/reset", "/tournaments", "/cancha-abierta", "/partidos", "/ranking", "/clubes", "/home", "/admin/contaduria"]) {
         revalidatePath(path);
     }
 

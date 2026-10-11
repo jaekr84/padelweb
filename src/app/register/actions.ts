@@ -1,9 +1,9 @@
 "use server";
 import { registrationRequests } from "@/db/schema";
 import { db } from "@/db";
-import { users, invitations } from "@/db/schema";
+import { users, invitations, categoriesTable } from "@/db/schema";
 import { hashPassword } from "@/lib/auth-server";
-import { eq, and, isNull, gt } from "drizzle-orm";
+import { eq, and, isNull, gt, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { jwtVerify } from "jose";
 import { getRegistrationMode } from "@/lib/registration-mode";
@@ -11,6 +11,15 @@ import { getRegistrationMode } from "@/lib/registration-mode";
 /** El formulario necesita saber si muestra el alta directa o la solicitud. */
 export async function getRegistrationModeAction() {
     return getRegistrationMode();
+}
+
+/** Categorías activas para el selector del formulario, de la más baja a la más alta. */
+export async function getRegistrationCategoriesAction() {
+    return db
+        .select({ id: categoriesTable.id, name: categoriesTable.name })
+        .from(categoriesTable)
+        .where(eq(categoriesTable.isActive, true))
+        .orderBy(asc(categoriesTable.categoryOrder));
 }
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
@@ -81,6 +90,7 @@ export async function registerAction(formData: FormData) {
     const birthDate = formData.get("birthDate") as string;
     const gender = formData.get("gender") as string;
     const side = formData.get("side") as string;
+    const categoryId = formData.get("categoryId") as string;
     const invitationToken = formData.get("invitationToken") as string;
 
     // En modo "invitación" el servidor exige el token: el formulario oculta el
@@ -90,7 +100,7 @@ export async function registerAction(formData: FormData) {
         return { error: "El registro es solo por invitación. Solicitá acceso para recibir tu link." };
     }
 
-    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender || !side) {
+    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender || !side || !categoryId) {
         return { error: "Faltan campos obligatorios" };
     }
 
@@ -100,6 +110,20 @@ export async function registerAction(formData: FormData) {
 
     if (side !== "drive" && side !== "reves" && side !== "ambos") {
         return { error: "Lado de juego no válido" };
+    }
+
+    // La categoría se valida contra la tabla: el form manda el id, pero en
+    // `users.category` se guarda el nombre (es lo que leen ranking, ficha y
+    // desafíos). Los puntos arrancan en el mínimo de la categoría, igual que en
+    // una promoción manual; si no, la columna caía en el default viejo "5ta".
+    const [selectedCategory] = await db
+        .select({ name: categoriesTable.name, minPoints: categoriesTable.minPoints })
+        .from(categoriesTable)
+        .where(and(eq(categoriesTable.id, categoryId), eq(categoriesTable.isActive, true)))
+        .limit(1);
+
+    if (!selectedCategory) {
+        return { error: "Categoría no válida" };
     }
 
     // 1. Check if user already exists (email or document)
@@ -195,6 +219,8 @@ export async function registerAction(formData: FormData) {
                 birthDate,
                 gender,
                 side,
+                category: selectedCategory.name,
+                points: selectedCategory.minPoints,
                 // El club sale sólo de la invitación validada, nunca de un campo
                 // del formulario: con el registro abierto cualquiera podría
                 // mandar un clubId ajeno y quedar vinculado a ese club.

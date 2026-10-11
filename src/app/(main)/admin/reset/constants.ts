@@ -9,6 +9,7 @@ export type ResetScope =
     | "matches"
     | "clubs"
     | "social"
+    | "accounting"
     | "all";
 
 /** Frase exacta que el superadmin debe escribir para habilitar cada reset. */
@@ -19,6 +20,7 @@ export const RESET_CONFIRMATIONS: Record<ResetScope, string> = {
     matches: "RESETEAR PARTIDOS",
     clubs: "RESETEAR CLUBES",
     social: "RESETEAR CONTENIDO",
+    accounting: "RESETEAR CONTADURIA",
     all: "BORRAR TODO",
 };
 
@@ -36,4 +38,6 @@ export interface ResetCounts {
     marketplaceItems: number;
     conversations: number;
     messages: number;
+    accountingEntries: number;
+    accountingPrizeConfigs: number;
 }

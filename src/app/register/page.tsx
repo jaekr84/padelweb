@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { registerAction, requestRegistrationAction, verifyTokenAction, getRegistrationModeAction } from "./actions";
-import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronDown, ChevronLeft, ArrowLeftRight } from "lucide-react";
+import { registerAction, requestRegistrationAction, verifyTokenAction, getRegistrationModeAction, getRegistrationCategoriesAction } from "./actions";
+import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronLeft, ArrowLeftRight, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 
 export default function RegisterPage() {
     const searchParams = useSearchParams();
@@ -24,6 +25,12 @@ export default function RegisterPage() {
     const [createdStatus, setCreatedStatus] = useState<"pending" | "approved" | null>(null);
     // "abierta"/"libre": cualquiera puede crear su cuenta; "invitacion": sólo con link.
     const [mode, setMode] = useState<"invitacion" | "abierta" | "libre" | null>(null);
+
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+    useEffect(() => {
+        getRegistrationCategoriesAction().then(setCategories).catch(() => setCategories([]));
+    }, []);
 
     useEffect(() => {
         getRegistrationModeAction().then(setMode).catch(() => setMode("invitacion"));
@@ -362,45 +369,33 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Gender */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">Género</label>
-                                <div className="group relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
-                                    <select
-                                        name="gender"
-                                        defaultValue=""
-                                        required
-                                        className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground appearance-none focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans cursor-pointer relative z-10"
-                                    >
-                                        <option value="" disabled>Selecciona</option>
-                                        <option value="masculino">Masculino</option>
-                                        <option value="femenino">Femenino</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors pointer-events-none" />
-                                </div>
-                            </div>
-
-                            {/* Side */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">Lado de juego</label>
-                                <div className="group relative">
-                                    <ArrowLeftRight className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors" />
-                                    <select
-                                        name="side"
-                                        defaultValue=""
-                                        required
-                                        className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-foreground appearance-none focus:outline-none focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 transition-all font-sans cursor-pointer relative z-10"
-                                    >
-                                        <option value="" disabled>Selecciona</option>
-                                        <option value="drive">Drive</option>
-                                        <option value="reves">Revés</option>
-                                        <option value="ambos">Ambos</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-focus-within:text-azul-primary transition-colors pointer-events-none" />
-                                </div>
-                            </div>
+                            <FormSelect
+                                name="gender"
+                                label="Género"
+                                icon={Users}
+                                options={[
+                                    { value: "masculino", label: "Masculino" },
+                                    { value: "femenino", label: "Femenino" },
+                                ]}
+                            />
+                            <FormSelect
+                                name="side"
+                                label="Lado de juego"
+                                icon={ArrowLeftRight}
+                                options={[
+                                    { value: "drive", label: "Drive" },
+                                    { value: "reves", label: "Revés" },
+                                    { value: "ambos", label: "Ambos" },
+                                ]}
+                            />
                         </div>
+
+                        <FormSelect
+                            name="categoryId"
+                            label="Categoría"
+                            icon={Trophy}
+                            options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                        />
 
                         {/* Password */}
                         <div className="space-y-2">
@@ -460,6 +455,41 @@ export default function RegisterPage() {
                     </form>
                 )}
             </motion.div>
+        </div>
+    );
+}
+
+/**
+ * Desplegable del formulario con el mismo look que los inputs. Radix renderiza
+ * un <select> oculto con `name`/`required`, así que el FormData del submit
+ * sigue recibiendo el valor sin cambios en `registerAction`.
+ */
+function FormSelect({ name, label, icon: Icon, options }: {
+    name: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    options: { value: string; label: string }[];
+}) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-subtle tracking-[0.2em] ml-4">{label}</label>
+            <Select name={name} required>
+                <SelectTrigger className="group relative h-auto w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium normal-case text-foreground focus:border-azul-primary/50 focus:ring-4 focus:ring-azul-primary/10 data-[state=open]:border-azul-primary/50 data-[state=open]:ring-4 data-[state=open]:ring-azul-primary/10 data-[placeholder]:text-subtle font-sans cursor-pointer [&>svg]:opacity-100 [&>svg]:text-subtle [&>svg]:transition-transform data-[state=open]:[&>svg]:rotate-180">
+                    <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle group-data-[state=open]:text-azul-primary transition-colors" />
+                    <SelectValue placeholder="Selecciona" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-hairline bg-card text-card-foreground shadow-[0_20px_50px_-12px_rgba(10,15,30,0.35)]">
+                    {options.map((o) => (
+                        <SelectItem
+                            key={o.value}
+                            value={o.value}
+                            className="rounded-xl py-3 pl-4 pr-10 text-[13px] font-semibold normal-case cursor-pointer text-foreground focus:bg-azul-primary/10 focus:text-azul-primary data-[state=checked]:text-azul-primary"
+                        >
+                            {o.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 }

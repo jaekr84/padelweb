@@ -3,9 +3,10 @@
 import { useState, useTransition } from "react";
 import {
     Users, Trophy, Activity, Swords, Building2, MessageSquare,
-    AlertTriangle, ShieldAlert, Loader2, RotateCcw, Check
+    AlertTriangle, ShieldAlert, Loader2, RotateCcw, Check, Wallet
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { getResetCounts, resetScope } from "./actions";
 import { RESET_CONFIRMATIONS, type ResetScope, type ResetCounts } from "./constants";
 
@@ -66,6 +67,13 @@ const CARDS: ScopeCard[] = [
         wipes: ["Posts y comentarios", "Marketplace", "Conversaciones y mensajes", "Notificaciones push y solicitudes"],
         summary: c => `${c.posts} posts · ${c.messages} mensajes · ${c.marketplaceItems} publicaciones`,
     },
+    {
+        scope: "accounting",
+        title: "Contaduría",
+        icon: Wallet,
+        wipes: ["Ingresos y gastos (generales y de cada evento)", "Movimientos automáticos de inscripciones", "Configuración del reparto de premios"],
+        summary: c => `${c.accountingEntries} movimientos · ${c.accountingPrizeConfigs} repartos de premios`,
+    },
 ];
 
 export default function ResetDatabaseClient({ initialCounts }: Props) {
@@ -74,6 +82,7 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
     const [typed, setTyped] = useState("");
     const [password, setPassword] = useState("");
     const [isPending, startTransition] = useTransition();
+    const queryClient = useQueryClient();
 
     const expectedPhrase = confirmingScope ? RESET_CONFIRMATIONS[confirmingScope] : "";
     const canConfirm = typed.trim() === expectedPhrase && password.length > 0;
@@ -92,6 +101,11 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
         startTransition(async () => {
             try {
                 await resetScope(scope, typed.trim(), password);
+                // El revalidatePath del servidor no alcanza al caché de React
+                // Query: la lista de usuarios (y jugadores, clubes) solo toma
+                // los datos frescos del servidor si su caché está vacío, así
+                // que sin esto seguía mostrando lo borrado hasta recargar.
+                queryClient.removeQueries();
                 const fresh = await getResetCounts();
                 setCounts(fresh);
                 toast.success(
@@ -176,8 +190,9 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                         <div>
                             <h2 className="text-[13px] font-black uppercase italic tracking-tight text-foreground leading-none">Borrar todo</h2>
                             <span className="text-[10px] font-bold text-muted-foreground">
-                                Ejecuta las seis áreas de una vez: {counts.users} usuarios, {counts.tournaments} torneos,{" "}
-                                {counts.openCourtEvents} eventos, {counts.matches} partidos, {counts.clubs} clubes y todo el contenido
+                                Ejecuta las siete áreas de una vez: {counts.users} usuarios, {counts.tournaments} torneos,{" "}
+                                {counts.openCourtEvents} eventos, {counts.matches} partidos, {counts.clubs} clubes,{" "}
+                                {counts.accountingEntries} movimientos contables y todo el contenido
                             </span>
                         </div>
                     </div>

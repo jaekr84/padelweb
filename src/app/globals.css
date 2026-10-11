@@ -26,6 +26,14 @@
   --color-silver: #c9d4e4;
   --color-bronze: #e8925a;
 
+  /* Banderas — landing Remate: celeste argentino, rojo y azul coreanos */
+  --color-flag-celeste: #74acdf;
+  --color-flag-celeste-light: #a9cdee;
+  --color-flag-rojo: #cd2e3a;
+  --color-flag-azul: #0047a0;
+  --color-flag-navy: #061430;
+  --color-flag-ink: #030a1a;
+
   --animate-marquee: marquee 30s linear infinite;
   --animate-live-pulse: live-pulse 1.6s ease-in-out infinite;
 }
