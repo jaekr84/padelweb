@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert, Swords, Wallet, LayoutTemplate } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert, Swords, Wallet, LayoutTemplate, Building2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -55,6 +55,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
+        { href: "/admin/clubs", icon: Building2, label: "Gestión Clubes" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/admin/contaduria", icon: Wallet, label: "Contaduría" },
         { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },

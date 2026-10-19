@@ -1,5 +1,6 @@
 import { db } from "@/db";
-import { tournaments, users, clubs } from "@/db/schema";
+import { tournaments, clubs } from "@/db/schema";
+import { getManagedClubId } from "@/lib/managed-club";
 import { eq, desc } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
@@ -15,19 +16,8 @@ export default async function ClubTournamentsPage() {
         redirect("/home");
     }
 
-    // Identify the club for this user (either as owner or staff)
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, session.userId),
-    });
-
-    let userClubId = user?.clubId || null;
-
-    if (!userClubId) {
-        const ownedClub = await db.query.clubs.findFirst({
-            where: eq(clubs.ownerId, session.userId),
-        });
-        userClubId = ownedClub?.id || null;
-    }
+    // El club que gestiona: el propio primero, y si no tiene, el de staff.
+    const userClubId = await getManagedClubId(session.userId);
 
     if (!userClubId) {
         return (

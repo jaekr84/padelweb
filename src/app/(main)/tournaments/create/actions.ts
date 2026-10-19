@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { getTournamentPointsConfig, getClubTournamentLimits } from "@/lib/settings-actions";
+import { getManagedClubId, hasRole } from "@/lib/managed-club";
 import { count, and } from "drizzle-orm";
 
 type PointsConfig = {
@@ -64,14 +65,11 @@ export async function createTournament(data: TournamentInput) {
     }
 
     // 1. Determine local Club ID more accurately
+    // El club propio primero: `user.clubId` es la membresía como jugador y,
+    // si el responsable es socio de otro club, el torneo terminaba en ese.
     let actualClubId: string | null = null;
     if (isClub) {
-        if (user.clubId) {
-            actualClubId = user.clubId;
-        } else {
-            const [ownedClub] = await db.select().from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
-            actualClubId = ownedClub?.id || null;
-        }
+        actualClubId = await getManagedClubId(userId);
     }
 
     // 2. Check Limits for Clubs
@@ -156,9 +154,8 @@ export async function updateTournament(id: string, data: TournamentInput) {
 
     // Get current user's club IDs
     let userClubId: string | null = userResult[0]?.clubId || null;
-    if (!userClubId && userResult[0]?.role === 'club') {
-        const [ownedClub] = await db.select().from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
-        userClubId = ownedClub?.id || null;
+    if (hasRole(userResult[0]?.role, 'club')) {
+        userClubId = await getManagedClubId(userId);
     }
 
     const isOwner = tournament.createdByUserId === userId;

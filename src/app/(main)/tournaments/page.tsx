@@ -160,7 +160,10 @@ export default async function TournamentsPage({
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
             
             const ownedClub = await db.select({ id: clubs.id }).from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
-            finalClubId = dbUser?.clubId || ownedClub[0]?.id || null;
+            // Con la vista Club, "mi club" es el que gestiona; como jugador, el suyo de socio.
+            finalClubId = session?.role === "club"
+                ? ownedClub[0]?.id || dbUser?.clubId || null
+                : dbUser?.clubId || ownedClub[0]?.id || null;
         }
 
     } catch (e) {

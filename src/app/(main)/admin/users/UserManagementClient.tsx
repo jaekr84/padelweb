@@ -161,10 +161,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
     const updateRoleMutation = useMutation({
         mutationFn: ({ userId, role }: { userId: string; role: string }) => updateUserRole(userId, role),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ["users"] });
             setIsRoleModalOpen(false);
-            toast.success("Rol actualizado");
+            toast.success(res?.sessionClosed
+                ? "Rol actualizado. Se le cerró la sesión para que entre con el rol nuevo."
+                : "Rol actualizado");
         },
         onError: (error: any) => toast.error(error.message || "Error al actualizar rol"),
     });
@@ -1025,7 +1027,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                 })}
                             </div>
                             <p className="text-[10px] font-black text-muted-foreground text-center uppercase tracking-widest px-4 opacity-70">
-                                Selecciona todos los roles que correspondan al usuario. Los privilegios se acumulan.
+                                Selecciona todos los roles que correspondan al usuario. Los privilegios se acumulan. Al darle Club se le crea su club, que después completa desde Mi Club.
                             </p>
                         </div>
 

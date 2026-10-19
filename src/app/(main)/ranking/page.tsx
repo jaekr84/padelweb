@@ -1,7 +1,7 @@
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
 import { users, registrations, categoriesTable, bracketMatches, groupMatches, tournaments, clubs } from "@/db/schema";
-import { eq, inArray, asc, and, sql, notInArray } from "drizzle-orm";
+import { eq, ne, inArray, asc, and, sql, notInArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { HIDDEN_USER_EMAILS, noEsInvitado } from "@/lib/hidden-users";
 
@@ -31,7 +31,10 @@ export default async function RankingPage() {
     .where(
         and(
             notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]),
-            noEsInvitado()
+            noEsInvitado(),
+            // Una cuenta que es sólo club no juega: no va al ranking.
+            // ("jugador,club" sí, porque además juega.)
+            ne(users.role, "club")
         )
     );
 

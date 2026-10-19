@@ -5,6 +5,7 @@ import { users, registrations, clubs, tournaments } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
+import { hasRole } from "@/lib/managed-club";
 
 export async function getMyClubMembers() {
     try {
@@ -57,7 +58,7 @@ export async function clubMassInscribe(input: ClubMassInscribeInput) {
         if (!tournament) throw new Error("Torneo no encontrado");
 
         // 1. Validate if user is truly club role (already checked in getSession override but dbRole is safer)
-        if (session.dbRole !== "club" && session.dbRole !== "superadmin") {
+        if (!hasRole(session.dbRole, "club") && !hasRole(session.dbRole, "superadmin")) {
              throw new Error("No tenés permisos de club para esta acción");
         }
 

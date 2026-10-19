@@ -6,13 +6,14 @@ import { eq, desc, sql, and, notInArray } from "drizzle-orm";
 import ClubProfileClient from "./ClubProfileClient";
 import { Shield } from "lucide-react";
 import { HIDDEN_USER_EMAILS, noEsInvitado } from "@/lib/hidden-users";
+import { freeClubId, hasRole } from "@/lib/managed-club";
 
 export default async function ClubProfilePage({
     searchParams
 }: {
     searchParams: Promise<{ id?: string }>
 }) {
-    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    const session = await getSession();
     const resolvedSearchParams = await searchParams;
     const targetClubId = resolvedSearchParams?.id;
 
@@ -57,10 +58,13 @@ export default async function ClubProfilePage({
             .where(eq(clubs.ownerId, session.userId));
         club = userClubs[0] ?? null;
 
-        // Auto-create if club role but no club found
-        if (!club && session.role === 'club') {
+        // Red de seguridad para cuentas club viejas sin fila en `clubs` (hoy el
+        // club se crea al dar el rol o desde Admin > Clubes). Mira el rol real
+        // de la base y no sólo el activo: un superadmin que cambia a la vista
+        // Club no tiene que terminar con un club a su nombre.
+        if (!club && session.role === 'club' && hasRole(session.dbRole, 'club')) {
             const clubData = {
-                id: session.userId,
+                id: await freeClubId(db, session.userId),
                 ownerId: session.userId,
                 name: "Mi Club",
                 type: "club",

@@ -1,5 +1,6 @@
 import { db } from "@/db";
-import { openCourtEvents, clubs, users } from "@/db/schema";
+import { openCourtEvents, clubs } from "@/db/schema";
+import { getManagedClubId } from "@/lib/managed-club";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import AdminOpenCourtClient from "@/app/(main)/admin/cancha-abierta/AdminOpenCourtClient";
@@ -22,17 +23,8 @@ export default async function ClubOpenCourtPage() {
     // Get the club ID for the current manager
     let userClubId: string | null = null;
     if (session.role === "club") {
-        // Try to get clubId from user record first
-        const [dbUser] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
-        userClubId = dbUser?.clubId || null;
-
-        // Fallback: check if user is an owner of a club
-        if (!userClubId) {
-            const club = await db.query.clubs.findFirst({
-                where: eq(clubs.ownerId, session.userId),
-            });
-            userClubId = club?.id || null;
-        }
+        // El club propio primero; el de `users.clubId` es su membresía como jugador.
+        userClubId = await getManagedClubId(session.userId);
     }
 
     if (session.role === "club" && !userClubId) {
